@@ -78,8 +78,32 @@ def get_soil_data(lat, lon):
     else:
         raise Exception(f"SoilGrids API error: {response.status_code} - {response.text}")
 
+
+def geocode_location(place_name):
+    """
+    Convert a place name into latitude and longitude coordinates.
+    Returns a tuple of (latitude, longitude) or None if geocoding fails.
+    """
+    try:
+        # Using the free Nominatim geocoding service by OpenStreetMap
+        url = f"https://nominatim.openstreetmap.org/search?q={place_name}&format=json&limit=1"
+        headers = {'User-Agent': 'PlantX Climate Risk App'}
+
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if data and len(data) > 0:
+                lat = float(data[0]['lat'])
+                lon = float(data[0]['lon'])
+                return (lat, lon)
+            else:
+                return None
+        else:
+            return None
+    except Exception:
+        return None
+
 # For troubleshooting import issues
 if __name__ == "__main__":
     print("API services module loaded successfully")
-    print(f"Available functions: get_location_from_ip, get_visualcrossing_weather, get_soil_data")
-
+    print(f"Available functions: get_location_from_ip, get_visualcrossing_weather, get_soil_data, geocode_location")
