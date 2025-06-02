@@ -1,5 +1,31 @@
 import requests
 
+def get_location_from_ip():
+    """
+    Get the user's location based on their IP address.
+    Returns the user's city and country as a string.
+    """
+    try:
+        # Using ipinfo.io to get location data from IP
+        response = requests.get("https://ipinfo.io/json")
+        if response.status_code == 200:
+            data = response.json()
+            city = data.get("city", "Unknown")
+            region = data.get("region", "")
+            country = data.get("country", "")
+
+            # Construct location string
+            if city != "Unknown":
+                location = f"{city}, {country}"
+                return location
+            else:
+                return "New Delhi, India"  # Default fallback
+        else:
+            return "New Delhi, India"  # Default fallback
+    except Exception:
+        return "New Delhi, India"  # Default fallback
+
+
 def get_visualcrossing_weather(location, api_key):
     """
     Fetch weather data for given location (lat,lon or city name) from Visual Crossing API.
@@ -18,9 +44,6 @@ def get_visualcrossing_weather(location, api_key):
         return weather_info
     else:
         raise Exception(f"Visual Crossing API error: {response.status_code} - {response.text}")
-
-
-import requests
 
 
 def get_soil_data(lat, lon):
@@ -54,3 +77,9 @@ def get_soil_data(lat, lon):
         return soil_info
     else:
         raise Exception(f"SoilGrids API error: {response.status_code} - {response.text}")
+
+# For troubleshooting import issues
+if __name__ == "__main__":
+    print("API services module loaded successfully")
+    print(f"Available functions: get_location_from_ip, get_visualcrossing_weather, get_soil_data")
+
