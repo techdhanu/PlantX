@@ -5,6 +5,15 @@ from PIL import Image
 import os
 import time
 from datetime import datetime
+import sys
+import requests
+import json
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import API services
+from backend.api_services import get_visualcrossing_weather, get_location_from_ip
 
 # Function to add background image and enhanced styling
 def add_custom_styling():
@@ -227,9 +236,25 @@ st.set_page_config(
 # Add custom styling
 add_custom_styling()
 
-# Initialize session state for page navigation
+# Initialize session state for page navigation and weather data
 if 'page' not in st.session_state:
     st.session_state.page = "Home"
+
+# Initialize weather data in session state if not present
+if 'weather_data' not in st.session_state:
+    try:
+        # Default location - can be changed to user's preferred location
+        default_location = "New Delhi, India"
+        # Using the API to get weather data - no need for API key as it's hardcoded in the function
+        user_location = get_location_from_ip()
+        weather_data = get_visualcrossing_weather(user_location, None)
+        st.session_state.weather_data = weather_data
+        st.session_state.weather_location = user_location
+        st.session_state.weather_error = None
+    except Exception as e:
+        st.session_state.weather_data = {"temperature": 25, "humidity": 65, "rainfall": 0}
+        st.session_state.weather_location = default_location
+        st.session_state.weather_error = str(e)
 
 # Sidebar with enhanced logo, weather display and navigation
 with st.sidebar:
@@ -245,10 +270,20 @@ with st.sidebar:
 
     # Display current date and weather
     today = datetime.now().strftime("%B %d, %Y")
+    weather_info = st.session_state.weather_data
+    weather_location = st.session_state.weather_location
+    weather_error = st.session_state.weather_error
+
+    if weather_error:
+        weather_display = f"🌤️ Weather data unavailable: {weather_error}"
+    else:
+        weather_display = f"🌡️ {weather_info['temperature']}°C | 💧 {weather_info['humidity']}% | 🌧️ {weather_info['rainfall']}mm"
+
     st.markdown(f"""
     <div style="background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
         <p style="color: white; margin-bottom: 5px;">📅 {today}</p>
-        <p style="color: white; font-size: 14px;">🌤️ Weather data updating...</p>
+        <p style="color: white; font-size: 14px;">{weather_display}</p>
+        <p style="color: white; font-size: 12px;">Location: {weather_location}</p>
     </div>
     """, unsafe_allow_html=True)
 
