@@ -4,6 +4,7 @@ import pickle
 import os
 import json
 import sys
+import pandas as pd
 from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
 import joblib
 
@@ -237,8 +238,12 @@ def show():
     encoded_state = state_map[selected_state]
 
     # Prepare input in the correct order (9 features)
-    input_features = np.array([[encoded_crop, encoded_state, area, pesticide,
-                                temperature, humidity, rainfall, soil_pH, organic_carbon]])
+    # Create a dataframe with named features to avoid scikit-learn warnings
+    feature_names = ['crop_id', 'state_id', 'area', 'pesticide',
+                    'temperature', 'humidity', 'rainfall', 'soil_pH', 'organic_carbon']
+    input_df = pd.DataFrame([[encoded_crop, encoded_state, area, pesticide,
+                              temperature, humidity, rainfall, soil_pH, organic_carbon]],
+                              columns=feature_names)
 
     # Predict yield
     if st.button("🚜 Predict Yield"):
@@ -255,8 +260,8 @@ def show():
                 # Get a random factor to ensure variability if using backup model (1.0 to 1.5)
                 random_factor = 1.0 + (0.5 * np.random.random()) if isinstance(model, RandomForestRegressor) else 1.0
 
-                # Make prediction with model
-                prediction_raw = model.predict(input_features)
+                # Make prediction with model using named features
+                prediction_raw = model.predict(input_df)
 
                 # If prediction is too low (less than 0.1), use backup calculation
                 if prediction_raw[0] < 0.1:
