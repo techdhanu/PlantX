@@ -240,6 +240,14 @@ add_custom_styling()
 if 'page' not in st.session_state:
     st.session_state.page = "Home"
 
+# Initialize location preferences
+if 'user_location_preference' not in st.session_state:
+    st.session_state.user_location_preference = None
+
+# Explicitly initialize detected_location in session state
+if 'detected_location' not in st.session_state:
+    st.session_state.detected_location = None
+
 # Initialize weather data in session state if not present
 if 'weather_data' not in st.session_state:
     try:
@@ -247,13 +255,19 @@ if 'weather_data' not in st.session_state:
         default_location = "New Delhi, India"
         # Using the API to get weather data - no need for API key as it's hardcoded in the function
         user_location = get_location_from_ip()
-        weather_data = get_visualcrossing_weather(user_location, None)
+        st.session_state.detected_location = user_location
+
+        # Use user's preferred location if set, otherwise use detected location
+        location_to_use = st.session_state.user_location_preference or user_location
+
+        weather_data = get_visualcrossing_weather(location_to_use, None)
         st.session_state.weather_data = weather_data
-        st.session_state.weather_location = user_location
+        st.session_state.weather_location = location_to_use
         st.session_state.weather_error = None
     except Exception as e:
         st.session_state.weather_data = {"temperature": 25, "humidity": 65, "rainfall": 0}
         st.session_state.weather_location = default_location
+        st.session_state.detected_location = default_location
         st.session_state.weather_error = str(e)
 
 # Sidebar with enhanced logo, weather display and navigation
@@ -274,6 +288,50 @@ with st.sidebar:
     weather_location = st.session_state.weather_location
     weather_error = st.session_state.weather_error
 
+    # Get the detected location
+    detected_location = st.session_state.detected_location
+
+    # Location options (common farming locations in India)
+    location_options = [
+        "Select Your Location...",
+        "Bengaluru, India",
+        "New Delhi, India",
+        "Mumbai, India",
+        "Chennai, India",
+        "Kolkata, India",
+        "Hyderabad, India",
+        "Pune, India"
+    ]
+
+    # Add detected location if not already in the list
+    if detected_location not in location_options:
+        location_options.insert(1, detected_location)
+
+    # Get current selected location
+    current_location = st.session_state.user_location_preference or "Select Your Location..."
+
+    # Location selector
+    selected_location = st.selectbox(
+        "📍 Your Location",
+        options=location_options,
+        index=location_options.index(current_location) if current_location in location_options else 0
+    )
+
+    # Update location if changed
+    if selected_location != "Select Your Location..." and selected_location != st.session_state.user_location_preference:
+        try:
+            st.session_state.user_location_preference = selected_location
+            # Get updated weather data
+            updated_weather = get_visualcrossing_weather(selected_location, None)
+            st.session_state.weather_data = updated_weather
+            st.session_state.weather_location = selected_location
+            st.session_state.weather_error = None
+            # Add a rerun to refresh the page with new weather data
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error updating weather: {e}")
+
+    # Show info about detected vs selected location
     if weather_error:
         weather_display = f"🌤️ Weather data unavailable: {weather_error}"
     else:
