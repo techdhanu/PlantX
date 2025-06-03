@@ -29,18 +29,42 @@ def get_location_from_ip():
 def get_visualcrossing_weather(location, api_key):
     """
     Fetch weather data for given location (lat,lon or city name) from Visual Crossing API.
-    Returns temperature (°C), rainfall (mm), and humidity (%).
+    Returns temperature (°C), rainfall (mm), and humidity (%) for today and forecast.
     """
     url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location}?unitGroup=metric&key=YTZ9ZL9DDNTZCPM6D8T77WGTL&contentType=json"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         today = data['days'][0]  # today's weather
+
+        # Get current weather
         weather_info = {
             "temperature": today.get('temp', 0),      # average temperature in °C
             "rainfall": today.get('precip', 0),       # precipitation in mm
             "humidity": today.get('humidity', 0)      # humidity percentage
         }
+
+        # Get forecast data for next 7 days
+        forecast = []
+        for i in range(0, 7):  # 0 is today, 1-7 are the next 7 days
+            if i < len(data['days']):
+                day = data['days'][i]
+                forecast_day = {
+                    "date": day.get('datetime', ''),
+                    "temperature": day.get('temp', 0),
+                    "tempMin": day.get('tempmin', 0),
+                    "tempMax": day.get('tempmax', 0),
+                    "rainfall": day.get('precip', 0),
+                    "humidity": day.get('humidity', 0),
+                    "conditions": day.get('conditions', ''),
+                    "description": day.get('description', ''),
+                    "icon": day.get('icon', 'cloudy')
+                }
+                forecast.append(forecast_day)
+
+        # Add forecast to the response
+        weather_info['forecast'] = forecast
+
         return weather_info
     else:
         raise Exception(f"Visual Crossing API error: {response.status_code} - {response.text}")

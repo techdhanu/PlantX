@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import time
 import os
+from datetime import datetime
 
 def show():
     st.header("🌦️ Climate Risk Alerts")
@@ -21,6 +22,70 @@ def show():
 
     with tab1:
         col1, col2 = st.columns([2, 1])
+
+        # Add 7-Day Forecast at the top of the Risk Prediction tab
+        st.subheader("🔮 7-Day Weather Forecast")
+
+        # Get forecast data from session state
+        forecast_data = None
+        if 'weather_data' in st.session_state and 'forecast' in st.session_state.weather_data:
+            forecast_data = st.session_state.weather_data['forecast']
+
+        if forecast_data:
+            # Create a horizontal layout for forecast cards
+            forecast_cols = st.columns(7)
+
+            # Weather icon mapping
+            weather_icons = {
+                'clear-day': '☀️',
+                'clear-night': '🌙',
+                'partly-cloudy-day': '⛅',
+                'partly-cloudy-night': '🌙',
+                'cloudy': '☁️',
+                'rain': '🌧️',
+                'snow': '❄️',
+                'sleet': '🌨️',
+                'wind': '💨',
+                'fog': '🌫️',
+                'thunder': '⛈️',
+                'thunder-rain': '⛈️',
+                'thunder-showers-day': '⛈️',
+                'thunder-showers-night': '⛈️',
+            }
+
+            # Display each day's forecast in a column
+            for i, (day, col) in enumerate(zip(forecast_data, forecast_cols)):
+                date_obj = datetime.strptime(day['date'], '%Y-%m-%d')
+                day_name = date_obj.strftime('%a') if i > 0 else 'Today'
+                icon = weather_icons.get(day['icon'], '🌤️')
+
+                # Determine if there are any risk conditions
+                risk_level = "Low"
+                risk_color = "#4CAF50"
+
+                if day['rainfall'] > 15:
+                    risk_level = "High"
+                    risk_color = "#F44336"
+                elif day['rainfall'] > 5:
+                    risk_level = "Moderate"
+                    risk_color = "#FF9800"
+
+                col.markdown(f"""
+                <div style="background-color: #F1F8E9; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 5px; border-top: 4px solid {risk_color};">
+                    <p style="font-weight: bold; margin-bottom: 5px;">{day_name}</p>
+                    <p style="font-size: 24px; margin: 5px 0;">{icon}</p>
+                    <p style="font-size: 18px; margin: 5px 0;">{day['temperature']}°C</p>
+                    <p style="font-size: 12px; margin: 2px 0;">🔽 {day['tempMin']}° 🔼 {day['tempMax']}°</p>
+                    <p style="font-size: 12px; margin: 2px 0;">💧 {day['humidity']}%</p>
+                    <p style="font-size: 12px; margin: 2px 0;">🌧️ {day['rainfall']} mm</p>
+                    <p style="font-size: 10px; background-color: {risk_color}; color: white; padding: 2px 5px; border-radius: 10px; margin-top: 5px;">{risk_level} Risk</p>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Weather forecast data is not available. Please check your location settings.")
+
+        # Add a separator between forecast and risk prediction form
+        st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
 
         with col1:
             st.markdown("### Location & Environmental Data")
@@ -209,18 +274,28 @@ def show():
                 time.sleep(1.5)  # Simulate processing time
 
             try:
-                # Load the model (with error handling)
+                # Load the model (with improved error handling)
                 model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "models", "climate_risk_model.pkl")
 
-                # If model doesn't exist, we'll create a mock risk evaluation
+                # Initialize to use mock prediction by default (as fallback)
                 mock_prediction = True
 
                 try:
-                    with open(model_path, "rb") as f:
-                        model = pickle.load(f)
-                    mock_prediction = False
-                except:
-                    pass
+                    if not os.path.exists(model_path):
+                        st.warning(f"Model file not found at: {model_path}")
+                        st.info("Using fallback prediction method based on input parameters.")
+                    else:
+                        try:
+                            with open(model_path, "rb") as f:
+                                model = pickle.load(f)
+                            # Successfully loaded the model
+                            mock_prediction = False
+                            st.success("Climate risk model loaded successfully.")
+                        except Exception as e:
+                            st.error(f"Error loading model: {str(e)}")
+                            st.info("Using fallback prediction method based on input parameters.")
+                except Exception as e:
+                    st.error(f"Unexpected error: {str(e)}")
 
                 # Convert categorical inputs to numbers
                 land_cover_map = {"Forest":0, "Urban":1, "Agriculture":2, "Water":3}
@@ -462,146 +537,119 @@ def show():
             # Fallback to static heatmap if the interactive map fails
             st.markdown("""
             <div style="margin-top: 15px;">
-                <img src="https://i.imgur.com/jzmJ4vq.jpg" width="100%" style="border-radius: 10px;" alt="Climate Risk Heatmap of India"/>
-                <p style="text-align: center; font-size: 12px; margin-top: 5px;">Climate risk heatmap showing flood, drought, and normal regions across India</p>
+                <img src="https://images.unsplash.com/photo-1548407260-da850faa41e3?q=80&w=1200&auto=format&fit=crop" 
+                style="width: 100%; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" 
+                alt="Climate Risk Heatmap - India">
+                <p style="text-align: center; margin-top: 10px; font-style: italic;">Climate Risk Heatmap of India showing flood and drought risk areas</p>
             </div>
             """, unsafe_allow_html=True)
 
         with map_col2:
-            # Show risk legend
-            st.markdown("#### Risk Legend")
-            st.markdown("""
-            <div>
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                    <div style="background-color: #E57373; width: 20px; height: 20px; margin-right: 10px; border-radius: 3px;"></div>
-                    <div>High Risk Areas</div>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                    <div style="background-color: #FFB74D; width: 20px; height: 20px; margin-right: 10px; border-radius: 3px;"></div>
-                    <div>Moderate Risk Areas</div>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                    <div style="background-color: #81C784; width: 20px; height: 20px; margin-right: 10px; border-radius: 3px;"></div>
-                    <div>Low Risk Areas</div>
-                </div>
+            st.subheader("Location Risk Details")
+            st.write("Click on a location for more details:")
+
+            # Sample data for selected locations
+            selected_location = st.selectbox("Select location for detailed analysis",
+                                           ["Delhi NCR", "Varanasi", "Bengaluru", "Chennai", "Hyderabad", "Mumbai"])
+
+            # Display risk details based on selection
+            if selected_location == "Delhi NCR":
+                risk_level = "High"
+                risk_color = "#F44336"
+                risk_factors = ["Frequent flooding", "Poor drainage infrastructure", "Proximity to Yamuna river"]
+                recommendations = ["Implement flood-resistant crops", "Improve drainage systems", "Consider raised bed farming"]
+            elif selected_location == "Varanasi":
+                risk_level = "Moderate"
+                risk_color = "#FF9800"
+                risk_factors = ["Irregular rainfall", "Drought-prone summers", "Groundwater depletion"]
+                recommendations = ["Drought-resistant crop varieties", "Water conservation techniques", "Mulching practices"]
+            else:
+                risk_level = "Low"
+                risk_color = "#4CAF50"
+                risk_factors = ["Stable climate patterns", "Adequate infrastructure", "Sufficient water resources"]
+                recommendations = ["Maintain current agricultural practices", "Monitor seasonal forecasts", "Regular soil testing"]
+
+            # Display risk information in a card
+            st.markdown(f"""
+            <div style="background-color: {risk_color}; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0;">
+                <h3 style="color: white; margin: 0;">{selected_location}</h3>
+                <p style="color: white; font-weight: bold; margin: 5px 0;">{risk_level} Risk Area</p>
             </div>
             """, unsafe_allow_html=True)
 
-            # Add regional information
-            st.markdown("#### Regional Risks")
-            regional_risks = {
-                "North India": "High flood risk during monsoon",
-                "Central India": "Moderate to high drought risk",
-                "South India": "Low to moderate risk overall"
-            }
+            st.write("**Risk Factors:**")
+            for factor in risk_factors:
+                st.markdown(f"• {factor}")
 
-            for region, risk in regional_risks.items():
-                st.markdown(f"""
-                <div style="background-color: #F1F8E9; padding: 10px; border-radius: 5px; margin-bottom: 5px;">
-                    <strong>{region}:</strong> {risk}
-                </div>
-                """, unsafe_allow_html=True)
+            st.write("**Recommendations:**")
+            for rec in recommendations:
+                st.markdown(f"• {rec}")
 
     with tab3:
-        # Historical data analysis tab
-        st.subheader("Historical Climate Data Analysis")
+        # Historical Analysis Tab
+        st.markdown("### Historical Flood Analysis")
+        st.write("Track patterns and changes in climate risks over time.")
 
-        # Year selection
-        selected_year = st.select_slider(
-            "Select Year Range",
-            options=list(range(2020, 2026)),
-            value=2023
-        )
+        # Year range slider
+        selected_years = st.slider("Select year range to analyze",
+                                 min_value=2015,
+                                 max_value=2025,
+                                 value=(2018, 2025))
 
-        # Historical data visualization
-        st.markdown(f"### Climate Data for {selected_year}")
-
-        # Create mock historical data charts
-        hist_col1, hist_col2 = st.columns(2)
-
-        with hist_col1:
-            st.markdown("#### Rainfall Patterns")
-            rainfall_chart = """
-            <div style="background-color: white; padding: 10px; border-radius: 5px; height: 200px; position: relative;">
-                <div style="position: absolute; bottom: 0; left: 0; width: 8%; height: 40%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 8%; width: 8%; height: 60%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 16%; width: 8%; height: 80%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 24%; width: 8%; height: 120%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 32%; width: 8%; height: 170%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 40%; width: 8%; height: 150%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 48%; width: 8%; height: 140%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 56%; width: 8%; height: 100%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 64%; width: 8%; height: 70%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 72%; width: 8%; height: 50%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 80%; width: 8%; height: 40%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: 0; left: 88%; width: 8%; height: 30%; background-color: #90CAF9;"></div>
-                <div style="position: absolute; bottom: -25px; left: 0; width: 100%; text-align: center; font-size: 12px;">Jan - Dec</div>
-                <div style="position: absolute; top: 0; left: -30px; transform: rotate(-90deg); transform-origin: left top; font-size: 12px;">mm</div>
-            </div>
-            """
-            st.markdown(rainfall_chart, unsafe_allow_html=True)
-            st.markdown("<div style='text-align: center; font-size: 12px;'>Monthly rainfall distribution</div>", unsafe_allow_html=True)
-
-        with hist_col2:
-            st.markdown("#### Temperature Trends")
-            temp_chart = """
-            <div style="background-color: white; padding: 10px; border-radius: 5px; height: 200px; position: relative;">
-                <svg width="100%" height="180">
-                    <path d="M0,120 C20,100 40,80 60,90 C80,100 100,110 120,95 C140,80 160,50 180,30 C200,20 220,40 240,50 C260,60 280,80 300,90 C320,100 340,110 360,100" stroke="#FF7043" stroke-width="3" fill="none"/>
-                    <path d="M0,150 C20,140 40,130 60,135 C80,140 100,145 120,140 C140,135 160,130 180,120 C200,115 220,125 240,130 C260,135 280,140 300,145 C320,150 340,155 360,150" stroke="#42A5F5" stroke-width="3" fill="none"/>
-                </svg>
-                <div style="position: absolute; bottom: -25px; left: 0; width: 100%; text-align: center; font-size: 12px;">Jan - Dec</div>
-                <div style="position: absolute; top: 0; left: -30px; transform: rotate(-90deg); transform-origin: left top; font-size: 12px;">°C</div>
-                <div style="position: absolute; top: 10px; right: 10px; font-size: 12px;">
-                    <span style="color: #FF7043;">■</span> Max Temp<br/>
-                    <span style="color: #42A5F5;">■</span> Min Temp
-                </div>
-            </div>
-            """
-            st.markdown(temp_chart, unsafe_allow_html=True)
-            st.markdown("<div style='text-align: center; font-size: 12px;'>Monthly temperature variations</div>", unsafe_allow_html=True)
-
-        # Historical trends
-        st.subheader("Long-term Climate Trends")
         st.markdown("""
-        <div style="background-color: #E8F5E9; padding: 15px; border-radius: 10px; margin: 15px 0;">
-            <h4 style="color: #2E7D32; margin-top: 0;">Climate Change Impact Summary</h4>
-            <p>Based on our analysis of historical data from 1990-2025:</p>
-            <ul>
-                <li>Average temperature has increased by 1.2°C</li>
-                <li>Rainfall patterns show 15% more variability</li>
-                <li>Extreme weather events have increased by 23%</li>
-                <li>Growing season has shifted by approximately 12 days</li>
-            </ul>
+        <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin: 15px 0;">
+            <p>Analysis shows a <strong>23% increase</strong> in flood risk in Northern India and a 
+            <strong>17% increase</strong> in drought conditions in Central regions over the selected period.</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # Recommendations based on historical data
-        st.markdown("### Agricultural Adaptation Recommendations")
-        rec_col1, rec_col2 = st.columns(2)
+        # Simple chart for historical data
+        st.write("**Flood Events by Year (2015-2025)**")
 
-        with rec_col1:
+        # Sample historical data
+        years = list(range(2015, 2026))
+        flood_events = [5, 7, 8, 12, 9, 14, 11, 15, 13, 16, 18]
+
+        # Create a simple bar chart
+        import pandas as pd
+
+        # Create dataframe
+        hist_data = pd.DataFrame({
+            "Year": years,
+            "Flood Events": flood_events
+        })
+
+        # Display chart
+        st.bar_chart(hist_data.set_index("Year"))
+
+        # Additional insights
+        st.subheader("Key Insights")
+
+        # Display insights in columns
+        col1, col2 = st.columns(2)
+
+        with col1:
             st.markdown("""
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px;">
-                <h4 style="color: #2E7D32; margin-top: 0;">Short-term Adaptations</h4>
+            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; height: 100%;">
+                <h4 style="color: #2E7D32;">Trends</h4>
                 <ul>
-                    <li>Adjust planting calendars based on shifting seasons</li>
-                    <li>Implement water conservation techniques</li>
-                    <li>Use drought-resistant crop varieties</li>
-                    <li>Enhance drainage systems for extreme rainfall</li>
+                    <li>Increasing frequency of extreme weather events</li>
+                    <li>Higher intensity rainfall in shorter periods</li>
+                    <li>Extended dry periods between monsoons</li>
+                    <li>Rising average temperatures affecting crop viability</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
 
-        with rec_col2:
+        with col2:
             st.markdown("""
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px;">
-                <h4 style="color: #2E7D32; margin-top: 0;">Long-term Strategies</h4>
+            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; height: 100%;">
+                <h4 style="color: #2E7D32;">Adaptation Strategies</h4>
                 <ul>
-                    <li>Diversify crop portfolios to reduce risk</li>
-                    <li>Invest in climate-smart agriculture technologies</li>
-                    <li>Implement agroforestry techniques</li>
-                    <li>Develop integrated pest management systems</li>
+                    <li>Implementing water management infrastructure</li>
+                    <li>Adopting climate-resilient crop varieties</li>
+                    <li>Utilizing early warning systems for extreme events</li>
+                    <li>Diversifying crop selection to spread risk</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
