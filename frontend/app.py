@@ -1,5 +1,5 @@
 import streamlit as st
-from pages import Crop_Recommendation, Yield_Prediction, Climate_Risk_Alerts, Plant_Disease_Detection
+from pages import Crop_Recommendation, Yield_Prediction, Climate_Risk_Alerts, Plant_Disease_Detection, Soil_Analysis
 import base64
 from PIL import Image
 import os
@@ -356,16 +356,17 @@ with st.sidebar:
         "Crop Recommendation": "🌾 Crop Recommendation",
         "Yield Prediction": "📊 Yield Prediction",
         "Climate Risk Alerts": "🌦️ Climate Risk Alerts",
-        "Plant Disease Detection": "🔬 Plant Disease Detection"
+        "Plant Disease Detection": "🔬 Plant Disease Detection",
+        "Soil Analysis": "🌱 Soil Analysis"
     }
 
     # Find the current index based on session state page
     current_emoji_page = page_map.get(st.session_state.page, "🏠 Home")
-    default_index = ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection"].index(current_emoji_page)
+    default_index = ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection", "🌱 Soil Analysis"].index(current_emoji_page) if current_emoji_page in ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection", "🌱 Soil Analysis"] else 0
 
     selection = st.radio(
         "Navigation",
-        ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection"],
+        ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection", "🌱 Soil Analysis"],
         index=default_index,
         label_visibility="collapsed"
     )
@@ -403,6 +404,8 @@ elif selection.startswith('🌦️'):
     clean_selection = "Climate Risk Alerts"
 elif selection.startswith('🔬'):
     clean_selection = "Plant Disease Detection"
+elif selection.startswith('🌱'):
+    clean_selection = "Soil Analysis"
 
 # Update the session state page
 st.session_state.page = clean_selection
@@ -549,3 +552,7 @@ elif clean_selection == "Plant Disease Detection":
     with st.spinner('Loading Plant Disease Detection System...'):
         time.sleep(0.5)
     Plant_Disease_Detection.show()
+elif clean_selection == "Soil Analysis":
+    with st.spinner('Loading Soil Analysis System...'):
+        time.sleep(0.5)
+    Soil_Analysis.show()
