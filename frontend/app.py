@@ -160,48 +160,80 @@ def add_custom_styling():
         
         /* Enhanced dropdown styling */
         .stSelectbox [data-baseweb="select"] div[role="button"] {{
-            background-color: #F9FBE7 !important;
-            border-color: #81C784 !important;
+            background-color: #F1F8E9 !important;
+            border-color: #2E7D32 !important;
             color: #2E7D32 !important;
-            font-weight: 500;
+            font-weight: 600 !important;
+            border-width: 2px !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            transition: all 0.2s ease !important;
+        }}
+        
+        .stSelectbox [data-baseweb="select"] div[role="button"]:hover {{
+            background-color: #E8F5E9 !important;
+            border-color: #388E3C !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
+            transform: translateY(-1px) !important;
+        }}
+        
+        .stSelectbox [data-baseweb="select"] div[role="listbox"] {{
+            background-color: #FFFFFF !important;
+            border: 2px solid #81C784 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+            max-height: 300px !important;
+            overflow-y: auto !important;
         }}
         
         .stSelectbox [data-baseweb="select"] div[role="listbox"] div {{
-            color: #2E7D32 !important;
-            background-color: #F9FBE7;
+            color: #333333 !important;
+            background-color: #FFFFFF !important;
+            padding: 8px 16px !important;
+            font-weight: 500 !important;
+            border-bottom: 1px solid rgba(129, 199, 132, 0.2) !important;
+            transition: all 0.1s ease !important;
         }}
         
         .stSelectbox [data-baseweb="select"] div[role="listbox"] div:hover {{
-            background-color: #E8F5E9;
+            background-color: #E8F5E9 !important;
+            color: #2E7D32 !important;
         }}
         
         .stSelectbox [data-baseweb="select"] div[role="listbox"] div[aria-selected="true"] {{
-            background-color: #C8E6C9;
+            background-color: #C8E6C9 !important;
+            color: #2E7D32 !important;
+            font-weight: 600 !important;
         }}
         
         .stSelectbox [data-baseweb="select"] svg {{
             color: #2E7D32 !important;
+            fill: #2E7D32 !important;
         }}
         
         /* Additional styling for better dropdown visibility */
         .stSelectbox [data-baseweb="select"] span {{
-            color: #2E7D32 !important;
-            font-weight: 500;
+            color: #333333 !important;
+            font-weight: 500 !important;
         }}
         
         .stSelectbox [data-baseweb="popover"] {{
-            background-color: #F9FBE7 !important;
-            border: 1px solid #81C784 !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            background-color: #FFFFFF !important;
+            border: 2px solid #81C784 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
         }}
         
         .stSelectbox [data-baseweb="select"] div[role="option"] {{
-            color: #2E7D32 !important;
-            background-color: #F9FBE7 !important;
+            color: #333333 !important;
+            background-color: #FFFFFF !important;
+            transition: background-color 0.2s ease !important;
         }}
         
         .stSelectbox [data-baseweb="select"] div[role="option"]:hover {{
             background-color: #E8F5E9 !important;
+            color: #2E7D32 !important;
         }}
         
         /* Styling for multiselect dropdowns */
@@ -209,15 +241,40 @@ def add_custom_styling():
             background-color: #E8F5E9 !important;
             color: #2E7D32 !important;
             border: 1px solid #81C784 !important;
+            border-radius: 16px !important;
+            padding: 2px 8px !important;
+            margin: 2px !important;
+        }}
+        
+        .stMultiSelect [data-baseweb="tag"] span {{
+            color: #2E7D32 !important;
+            font-weight: 500 !important;
         }}
         
         .stMultiSelect [data-baseweb="select"] input {{
-            color: #2E7D32 !important;
+            color: #333333 !important;
+            font-weight: 500 !important;
+        }}
+        
+        /* Also improve sidebar dropdown visibility */
+        [data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] div[role="button"] {{
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+        }}
+        
+        [data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {{
+            color: white !important;
+        }}
+        
+        [data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] svg {{
+            color: white !important;
+            fill: white !important;
         }}
         
         /* Make label text more visible */
         .css-1ekf893 label, .css-16huue1 label {{
-            font-weight: 500 !important;
+            font-weight: 600 !important;
             color: #2E7D32 !important;
         }}
         </style>
@@ -478,6 +535,32 @@ if clean_selection == "Home":
         """, unsafe_allow_html=True)
         if st.button("Explore Climate Risk Alerts →", key="climate_risk_btn"):
             st.session_state.page = "Climate Risk Alerts"
+            st.rerun()
+
+    # Second row of feature cards for Plant Disease Detection and Soil Analysis
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        <div class="feature-card">
+            <h3 style="color: #558B2F;">🔬 Plant Disease Detection</h3>
+            <p>Identify plant diseases instantly by uploading photos of affected plants and receive treatment recommendations to protect your crops.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Explore Plant Disease Detection →", key="disease_detection_btn"):
+            st.session_state.page = "Plant Disease Detection"
+            st.rerun()
+
+    with col2:
+        st.markdown("""
+        <div class="feature-card">
+            <h3 style="color: #558B2F;">🌱 Soil Analysis</h3>
+            <p>Analyze your soil type from images and get tailored recommendations for soil management and suitable crop selection.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Explore Soil Analysis →", key="soil_analysis_btn"):
+            st.session_state.page = "Soil Analysis"
             st.rerun()
 
     # Testimonial section

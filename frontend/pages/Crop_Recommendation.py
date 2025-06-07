@@ -184,7 +184,7 @@ def show():
                 # Dictionary of crop information
                 crop_info = {
                     'Rice': {
-                        'image_url': 'https://images.unsplash.com/photo-1569132891433-0ee04818151e?q=80&w=1170&auto=format&fit=crop',
+                        'image_url': 'https://cdn.britannica.com/89/140889-050-EC3F00BF/Ripening-heads-rice-Oryza-sativa.jpg',
                         'description': 'Rice thrives in wet environments and requires flooded fields for optimal growth. It\'s a staple crop in many cultures.',
                         'growing_season': 'Typically 3-6 months, depending on variety',
                         'soil_preference': 'Clay soils that retain water well',
@@ -192,7 +192,7 @@ def show():
                         'special_notes': 'Needs consistent water levels and warm temperatures'
                     },
                     'Wheat': {
-                        'image_url': 'https://images.unsplash.com/photo-1627634777225-55cdcbce5e34?q=80&w=1170&auto=format&fit=crop',
+                        'image_url': 'https://www.worldatlas.com/r/w1200/upload/d8/f0/68/shutterstock-116527159.jpg',
                         'description': 'Wheat is adaptable to various conditions and is one of the world\'s most important food crops.',
                         'growing_season': 'Winter wheat: planted in fall, harvested in summer; Spring wheat: planted in spring, harvested in fall',
                         'soil_preference': 'Well-draining loamy soil',
@@ -200,7 +200,7 @@ def show():
                         'special_notes': 'Drought-tolerant once established'
                     },
                     'Maize': {
-                        'image_url': 'https://images.unsplash.com/photo-1598196333442-9405be60fc54?q=80&w=774&auto=format&fit=crop',
+                        'image_url': 'https://cdn.pixabay.com/photo/2014/02/23/13/11/maize-272894_1280.jpg',
                         'description': 'Maize (corn) is a versatile crop used for food, feed, and industrial products. It requires warm conditions.',
                         'growing_season': '90-120 days depending on variety',
                         'soil_preference': 'Well-drained, fertile soils',
@@ -212,7 +212,7 @@ def show():
 
                 # Default information if crop not in dictionary
                 default_info = {
-                    'image_url': 'https://images.unsplash.com/photo-1517768692594-a8221d437002?q=80&w=1170&auto=format&fit=crop',
+                    'image_url': 'https://cdn.pixabay.com/photo/2014/02/23/13/11/maize-272894_1280.jpg',
                     'description': f'{crop_name} is well-suited for your soil conditions and local climate according to our AI model.',
                     'growing_season': 'Varies by region and variety',
                     'soil_preference': 'As indicated by your soil analysis',

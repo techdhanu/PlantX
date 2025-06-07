@@ -85,42 +85,42 @@ def show():
         # Display soil types information
         soil_types = {
             "Clay": {
-                "image_url": "https://www.growveg.com/images/shutterstock/clay-soil.jpg",
+                "image_url": "https://th.bing.com/th/id/OIP.ZDANIkyARHe04g1lXUYAvQAAAA?rs=1&pid=ImgDetMain",
                 "description": "Clay soil is made up of very small particles that stick together. When wet, it becomes sticky and heavy; when dry, it becomes hard and can crack.",
                 "characteristics": ["High in nutrients", "Slow draining", "Hard to work", "Warms slowly in spring"],
                 "suitable_crops": ["Rice", "Wheat", "Cabbage", "Broccoli", "Brussels Sprouts"],
                 "management": ["Add organic matter", "Add gypsum", "Avoid working when too wet or too dry"]
             },
             "Sandy": {
-                "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHFHIvnfzaRYUpYCNzKp-UNTmTRPwZCRsn5w&s",
+                "image_url": "https://th.bing.com/th/id/OIP.iO2zkFHOdmNx5UZGCkoETAHaE7?w=800&h=533&rs=1&pid=ImgDetMain",
                 "description": "Sandy soil consists of large particles that allow for good drainage but poor nutrient retention. It feels gritty and doesn't hold its shape when squeezed.",
                 "characteristics": ["Fast draining", "Low in nutrients", "Warms quickly in spring", "Easy to work"],
                 "suitable_crops": ["Potatoes", "Carrots", "Radishes", "Lettuce", "Strawberries"],
                 "management": ["Add organic matter", "Mulch well", "Water frequently", "Add fertilizer regularly"]
             },
             "Loamy": {
-                "image_url": "https://cdn.shopify.com/s/files/1/0260/3037/6477/files/generic-lawn-care-blog-insert-small_3100403c-9af2-4d1d-b21b-9c22e1e0dbc3_480x480.jpg?v=1646684729",
+                "image_url": "https://s15485.pcdn.co/wp-content/uploads/2023/05/loamy-soil-with-a-rich-dark-color.jpg",
                 "description": "Loam is the ideal garden soil, with a balanced mix of clay, sand, and organic material. It retains moisture but also drains well.",
                 "characteristics": ["Well-draining", "High in nutrients", "Good structure", "Easy to work"],
                 "suitable_crops": ["Most vegetables", "Corn", "Wheat", "Soybeans", "Most fruit trees"],
                 "management": ["Maintain with compost", "Regular crop rotation", "Moderate watering"]
             },
             "Silty": {
-                "image_url": "https://www.gardenersworld.com/wp-content/uploads/2019/03/silty-soil-1.jpg",
+                "image_url": "https://th.bing.com/th/id/OIP.gYamfO6nNV5XrkmQE47UiwHaE8?rs=1&pid=ImgDetMain",
                 "description": "Silty soil feels smooth and silky when wet and has a floury texture when dry. It holds moisture well but can become compacted easily.",
                 "characteristics": ["Good moisture retention", "Rich in nutrients", "Prone to compaction", "Moderate drainage"],
                 "suitable_crops": ["Wetland plants", "Most vegetables", "Shrubs", "Fruit trees"],
                 "management": ["Add organic matter", "Avoid stepping on soil", "Use cover crops"]
             },
             "Peaty": {
-                "image_url": "https://www.gardenersworld.com/wp-content/uploads/2019/03/peaty-soil.jpg",
+                "image_url": "https://img.freepik.com/premium-photo/peat-soil-planting-seedlings-flowers-ovary-closeup-natural-peat-from-swamps-selective-focus_330426-367.jpg?w=826",
                 "description": "Peaty soil is dark, spongy and contains a high amount of organic material. It holds water well but can become water-repellent when dry.",
                 "characteristics": ["High water retention", "Acidic", "High in organic matter", "Slow to warm in spring"],
                 "suitable_crops": ["Blueberries", "Rhododendrons", "Azaleas", "Cranberries"],
                 "management": ["Add lime to reduce acidity", "Improve drainage", "Add balanced fertilizers"]
             },
             "Chalky": {
-                "image_url": "https://www.gardenersworld.com/wp-content/uploads/2019/03/chalky-soil.jpg",
+                "image_url": "https://cdn.mos.cms.futurecdn.net/B5SaJnD3PJuNGCuCNvbgMh-1600-80.jpg",
                 "description": "Chalky soil is alkaline and often contains visible chunks of white chalk or limestone. It drains quickly and can lack nutrients.",
                 "characteristics": ["Fast draining", "Alkaline (high pH)", "Often shallow", "Warms quickly in spring"],
                 "suitable_crops": ["Spinach", "Beets", "Cabbage family", "Some herbs"],
