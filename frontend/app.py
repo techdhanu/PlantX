@@ -329,6 +329,11 @@ if 'weather_data' not in st.session_state:
 
 # Sidebar with enhanced logo, weather display and navigation
 with st.sidebar:
+    # --- Add logo image at the top ---
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=120)  # Adjust width as needed
+
     st.markdown("""
     <div style="text-align: center; margin-bottom: 20px;">
         <h1 style="color: white; margin-bottom: 0; font-size: 2rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
