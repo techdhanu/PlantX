@@ -1,285 +1,266 @@
-try:
-    import tensorflow as tf
-    TF_AVAILABLE = True
-except ImportError:
-    print("TensorFlow not available. Using fallback classification.")
-    TF_AVAILABLE = False
-
-import numpy as np
+import torch
+import torch.nn as nn
+from torchvision import transforms, models
 from PIL import Image
 import os
 import io
-import random
+import numpy as np
 
 # Cache directory for the model
 model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
-model_path = os.path.join(model_dir, "soil_type_classifier.keras")
+model_path = os.path.join(model_dir, "soil_model2.pth")
+
+class SoilClassifier(nn.Module):
+    def __init__(self, num_classes):
+        super(SoilClassifier, self).__init__()
+        # Using ResNet50 as base model
+        self.model = models.resnet50(pretrained=False)
+        num_ftrs = self.model.fc.in_features
+        # Replace fc with a sequential layer to match saved model structure
+        self.model.fc = nn.Sequential(
+            nn.Linear(num_ftrs, num_classes)
+        )
+
+    def forward(self, x):
+        return self.model(x)
 
 class SoilTypeClassifier:
     def __init__(self):
         self.model = None
         self.labels = [
-            "Clay", "Loamy", "Sandy", "Silty", "Peaty", "Chalky"
+            'Alluvial soil', 'Black Soil', 'Cinder Soil', 'Clay soil',
+            'Laterite Soil', 'Loamy soil', 'Peat Soil', 'Red soil',
+            'Sandy soil', 'Yellow Soil'
         ]
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.initialized = False
+        # ResNet50 standard preprocessing
+        self.transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+    def reset_model(self):
+        """Reset the model state"""
+        self.model = None
+        self.initialized = False
+        print("Model state reset.")
 
     def load_model(self):
-        """Load the model only when needed to save memory"""
-        if not TF_AVAILABLE:
-            print("TensorFlow not available. Using fallback classification.")
-            return False
-
         if not self.initialized:
             try:
-                print("Loading soil type classification model...")
-                self.model = tf.keras.models.load_model(model_path)
+                print("Loading soil classification model...")
+                self.model = SoilClassifier(len(self.labels))
+
+                if os.path.exists(model_path):
+                    print(f"Loading model from {model_path}")
+                    checkpoint = torch.load(model_path, map_location=self.device)
+
+                    # Handle different possible checkpoint formats
+                    if isinstance(checkpoint, dict):
+                        if 'state_dict' in checkpoint:
+                            state_dict = checkpoint['state_dict']
+                        elif 'model_state_dict' in checkpoint:
+                            state_dict = checkpoint['model_state_dict']
+                        else:
+                            state_dict = checkpoint
+                    else:
+                        state_dict = checkpoint
+
+                    # Clean the state dict keys and map them properly
+                    cleaned_state_dict = {}
+                    for k, v in state_dict.items():
+                        # Remove any module prefixes
+                        clean_key = k.replace('module.', '')
+
+                        # Handle the specific fc layer mapping
+                        if clean_key == 'model.fc.1.weight':
+                            clean_key = 'model.fc.0.weight'
+                        elif clean_key == 'model.fc.1.bias':
+                            clean_key = 'model.fc.0.bias'
+
+                        cleaned_state_dict[clean_key] = v
+
+                    # Load the cleaned state dict
+                    missing_keys, unexpected_keys = self.model.load_state_dict(cleaned_state_dict, strict=False)
+                    print(f"Missing keys: {missing_keys}")
+                    print(f"Unexpected keys: {unexpected_keys}")
+                    print("Model weights loaded successfully")
+                else:
+                    print(f"Warning: Model file not found at {model_path}")
+                    return False
+
+                self.model = self.model.to(self.device)
+                self.model.eval()
                 self.initialized = True
-                print("Soil classification model loaded successfully.")
                 return True
             except Exception as e:
                 print(f"Error loading soil model: {str(e)}")
+                import traceback
+                traceback.print_exc()
                 return False
         return True
 
     def preprocess_image(self, image):
-        """Preprocess image for the model"""
-        if not TF_AVAILABLE:
+        try:
+            # Ensure image is in RGB format
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+
+            print(f"Original image size: {image.size}")
+
+            # Apply the transformations
+            tensor = self.transform(image)
+            print(f"Tensor shape after transform: {tensor.shape}")
+
+            # Add batch dimension
+            tensor = tensor.unsqueeze(0)
+            print(f"Tensor shape after unsqueeze: {tensor.shape}")
+
+            # Move to device
+            tensor = tensor.to(self.device)
+            print(f"Tensor moved to device: {self.device}")
+
+            return tensor
+        except Exception as e:
+            print(f"Error in preprocessing: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
-        # Resize to the expected input size (assumed to be 224x224, adjust if different)
-        target_size = (224, 224)
-        image = image.resize(target_size)
-
-        # Convert to array and normalize
-        img_array = tf.keras.preprocessing.image.img_to_array(image)
-        img_array = img_array / 255.0  # Normalize to [0,1]
-        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
-
-        return img_array
-
     def classify_soil(self, image_path_or_bytes):
-        """
-        Classify soil type from an image
-
-        Args:
-            image_path_or_bytes: Path to image file or bytes of the image
-
-        Returns:
-            dict: Top soil type predictions with probabilities
-        """
         try:
-            # Check if input is a file path, bytes stream, or raw bytes
+            print("Starting soil classification...")
+
+            # Reset model state for fresh prediction
+            if self.initialized:
+                print("Resetting model for new prediction...")
+                self.reset_model()
+
             if isinstance(image_path_or_bytes, str):
-                # Handle path string
+                print("Loading image from path...")
                 image = Image.open(image_path_or_bytes).convert("RGB")
             elif hasattr(image_path_or_bytes, 'read'):
-                # Handle BytesIO or file-like object
+                print("Loading image from file-like object...")
                 image = Image.open(image_path_or_bytes).convert("RGB")
             else:
-                # Handle raw bytes
+                print("Loading image from bytes...")
                 image = Image.open(io.BytesIO(image_path_or_bytes)).convert("RGB")
 
-            # If TensorFlow is available, use the model
-            if TF_AVAILABLE and self.load_model():
-                # Preprocess image
-                preprocessed_img = self.preprocess_image(image)
+            if self.load_model():
+                print("Model loaded successfully. Processing image...")
+                input_tensor = self.preprocess_image(image)
+                if input_tensor is None:
+                    print("Error: Preprocessing failed.")
+                    return [{"soil_type": "Error", "confidence": 0.0}]
 
-                # Make prediction
-                predictions = self.model.predict(preprocessed_img)
+                with torch.no_grad():
+                    outputs = self.model(input_tensor)
+                    raw_output = outputs[0].cpu().numpy()
 
-                # Get predicted class probabilities
-                results = []
-                for i, prob in enumerate(predictions[0]):
-                    results.append({
-                        "soil_type": self.labels[i],
-                        "confidence": float(prob * 100)  # Convert to percentage
-                    })
-            else:
-                # Fallback: Use image characteristics for a rough estimation
-                # This is a simplified approach that analyzes image colors/textures
-                results = self._fallback_classifier(image)
+                    # Debugging raw outputs
+                    print(f"Raw model outputs: {raw_output}")
+                    print(f"Output shape: {raw_output.shape}")
 
-            # Sort results by confidence (highest first)
-            results = sorted(results, key=lambda x: x["confidence"], reverse=True)
+                    # Apply softmax to get probabilities
+                    import numpy as np
+                    exp_scores = np.exp(raw_output - np.max(raw_output))  # For numerical stability
+                    probabilities = exp_scores / np.sum(exp_scores)
 
-            # Get soil characteristics
-            soil_info = self.get_soil_characteristics(results[0]["soil_type"])
+                    # Get top 3 predictions
+                    top_indices = np.argsort(probabilities)[::-1][:3]
 
-            return {
-                "success": True,
-                "predictions": results,
-                "soil_characteristics": soil_info
-            }
+                    predictions = []
+                    for idx in top_indices:
+                        confidence = probabilities[idx] * 100
+                        predictions.append({
+                            "soil_type": self.labels[idx],
+                            "confidence": float(confidence)
+                        })
+                        print(f"Prediction: {self.labels[idx]}, Confidence: {confidence:.2f}%")
+
+                    return predictions
+
+            print("Error: Model not loaded.")
+            return [{"soil_type": "Error", "confidence": 0.0}]
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    def _fallback_classifier(self, image):
-        """
-        Fallback classifier that uses basic image analysis when TensorFlow is not available
-        """
-        # Analyze image to get basic color features
-        img_array = np.array(image.resize((100, 100)))
-
-        # Extract basic color features
-        avg_color = np.mean(img_array, axis=(0, 1))
-        r, g, b = avg_color
-
-        # Calculate basic color ratios
-        r_ratio = r / 255.0
-        g_ratio = g / 255.0
-        b_ratio = b / 255.0
-
-        # Add some randomness to make predictions look realistic
-        # but still be somewhat consistent for the same image
-        random.seed(int(sum(avg_color)))
-
-        # Create base confidences that sum to 100 (roughly)
-        confidences = []
-
-        # Dark brown -> likely Clay
-        if r_ratio < 0.5 and g_ratio < 0.4 and b_ratio < 0.4:
-            confidences = [65, 15, 5, 5, 5, 5]
-        # Light brown or beige -> likely Sandy
-        elif r_ratio > 0.5 and g_ratio > 0.4 and b_ratio < 0.4:
-            confidences = [10, 15, 55, 10, 5, 5]
-        # Dark with some red tint -> likely Loamy
-        elif r_ratio > 0.4 and g_ratio < 0.4 and r_ratio > g_ratio:
-            confidences = [15, 55, 15, 5, 5, 5]
-        # Grayish -> likely Silty
-        elif abs(r_ratio - g_ratio) < 0.1 and abs(g_ratio - b_ratio) < 0.1:
-            confidences = [10, 10, 15, 55, 5, 5]
-        # Dark with organic look -> likely Peaty
-        elif r_ratio < 0.3 and g_ratio < 0.3 and b_ratio < 0.3:
-            confidences = [10, 15, 5, 10, 55, 5]
-        # Light colored -> likely Chalky
-        elif r_ratio > 0.6 and g_ratio > 0.6 and b_ratio > 0.6:
-            confidences = [5, 5, 10, 15, 5, 60]
-        else:
-            # Default to a balanced distribution with slight preference for common soils
-            confidences = [25, 35, 20, 10, 5, 5]
-
-        # Add some variation to make it look more realistic
-        confidences = [c + (random.random() * 10 - 5) for c in confidences]
-
-        # Ensure all confidences are positive
-        confidences = [max(1, c) for c in confidences]
-
-        # Normalize to sum to 100
-        total = sum(confidences)
-        confidences = [c * 100 / total for c in confidences]
-
-        # Create prediction results
-        results = []
-        for i, label in enumerate(self.labels):
-            results.append({
-                "soil_type": label,
-                "confidence": confidences[i]
-            })
-
-        return results
+            print(f"Error during classification: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return [{"soil_type": "Error", "confidence": 0.0}]
 
     def get_soil_characteristics(self, soil_type):
-        """
-        Get characteristics of the identified soil type
-
-        Args:
-            soil_type: Detected soil type
-
-        Returns:
-            dict: Soil characteristics
-        """
+        """Get characteristics for the identified soil type"""
         soil_info = {
-            "Clay": {
-                "texture": "Heavy, sticky when wet, hard when dry",
-                "water_retention": "High - holds water well but drains slowly",
-                "fertility": "High in nutrients but can be hard for plants to access",
-                "pH_tendency": "Neutral to slightly alkaline (6.5-7.5)",
-                "suitable_crops": ["Rice", "Wheat", "Cabbage", "Broccoli", "Brussels Sprouts"],
-                "management_tips": [
-                    "Add organic matter to improve structure and drainage",
-                    "Avoid working when too wet or dry",
-                    "Consider raised beds to improve drainage",
-                    "Apply gypsum to improve structure"
-                ]
+            'Alluvial soil': {
+                'Water Retention': 'Good',
+                'Fertility': 'High',
+                'Best For': 'Rice, Wheat, Sugarcane, Jute',
+                'Management': 'Regular irrigation, balanced fertilization'
             },
-            "Loamy": {
-                "texture": "Medium texture, smooth and slightly sticky",
-                "water_retention": "Balanced - good drainage while retaining moisture",
-                "fertility": "High in nutrients and good at storing/releasing them",
-                "pH_tendency": "Usually neutral (6.0-7.0)",
-                "suitable_crops": ["Most vegetables", "Corn", "Wheat", "Soybeans", "Most fruit trees"],
-                "management_tips": [
-                    "Maintain organic matter through mulching and compost",
-                    "Rotate crops to maintain fertility",
-                    "Regular but moderate watering"
-                ]
+            'Black Soil': {
+                'Water Retention': 'Very High',
+                'Fertility': 'High',
+                'Best For': 'Cotton, Soybeans, Wheat',
+                'Management': 'Proper drainage, careful tillage when wet'
             },
-            "Sandy": {
-                "texture": "Gritty, loose and single-grained",
-                "water_retention": "Low - drains quickly and dries out fast",
-                "fertility": "Low in nutrients which leach away easily",
-                "pH_tendency": "Often acidic (5.0-6.5)",
-                "suitable_crops": ["Potatoes", "Carrots", "Radishes", "Lettuce", "Strawberries", "Watermelon"],
-                "management_tips": [
-                    "Add organic matter to improve water retention",
-                    "Use mulch to retain moisture",
-                    "More frequent but lighter watering",
-                    "May need more frequent fertilization"
-                ]
+            'Cinder Soil': {
+                'Water Retention': 'Low',
+                'Fertility': 'Low',
+                'Best For': 'Succulents, Cacti',
+                'Management': 'Add organic matter, frequent watering'
             },
-            "Silty": {
-                "texture": "Smooth and floury when dry, slippery when wet",
-                "water_retention": "Good moisture retention",
-                "fertility": "Typically fertile with good nutrient content",
-                "pH_tendency": "Slightly acidic to neutral (6.0-7.0)",
-                "suitable_crops": ["Shrubs", "Perennials", "Grass", "Wetland plants", "Most vegetables"],
-                "management_tips": [
-                    "Add organic matter to improve structure",
-                    "Take care not to compact when wet",
-                    "Use cover crops to prevent erosion",
-                    "Consider no-till or minimal tillage practices"
-                ]
+            'Clay soil': {
+                'Water Retention': 'High',
+                'Fertility': 'High',
+                'Best For': 'Rice, Wheat, Corn',
+                'Management': 'Improve drainage, add organic matter'
             },
-            "Peaty": {
-                "texture": "Dark, spongy and light",
-                "water_retention": "Very high water retention",
-                "fertility": "Low in nutrients, high in organic matter",
-                "pH_tendency": "Acidic (4.0-5.5)",
-                "suitable_crops": ["Blueberries", "Rhododendrons", "Azaleas", "Cranberries", "Certain vegetables"],
-                "management_tips": [
-                    "May need drainage improvements",
-                    "Add lime to reduce acidity if needed",
-                    "Add balanced fertilizers",
-                    "Can dry out in summer and become water repellent"
-                ]
+            'Laterite Soil': {
+                'Water Retention': 'Poor',
+                'Fertility': 'Low',
+                'Best For': 'Cashews, Tea, Coffee',
+                'Management': 'Regular fertilization, soil amendments'
             },
-            "Chalky": {
-                "texture": "Stony, chunky, and often light-colored",
-                "water_retention": "Low - drains quickly",
-                "fertility": "Low in nutrients, often lacks iron and manganese",
-                "pH_tendency": "Alkaline (7.5-8.5)",
-                "suitable_crops": ["Spinach", "Beets", "Sweet Corn", "Cabbage family", "Some herbs"],
-                "management_tips": [
-                    "Add organic matter regularly",
-                    "Use acidifying fertilizers for acid-loving plants",
-                    "Add iron supplements if yellowing occurs (chlorosis)",
-                    "Choose drought-tolerant plants"
-                ]
+            'Loamy soil': {
+                'Water Retention': 'Balanced',
+                'Fertility': 'High',
+                'Best For': 'Most crops and vegetables',
+                'Management': 'Maintain organic matter content'
+            },
+            'Peat Soil': {
+                'Water Retention': 'Very High',
+                'Fertility': 'High in organic matter',
+                'Best For': 'Vegetables, berries',
+                'Management': 'Manage water table, pH adjustment'
+            },
+            'Red soil': {
+                'Water Retention': 'Medium',
+                'Fertility': 'Medium',
+                'Best For': 'Groundnuts, Potatoes, Citrus fruits',
+                'Management': 'Add organic matter, proper irrigation'
+            },
+            'Sandy soil': {
+                'Water Retention': 'Low',
+                'Fertility': 'Low',
+                'Best For': 'Root vegetables, carrots',
+                'Management': 'Add organic matter, frequent watering'
+            },
+            'Yellow Soil': {
+                'Water Retention': 'Medium',
+                'Fertility': 'Medium to Low',
+                'Best For': 'Rice, Vegetables, Fruits',
+                'Management': 'Regular fertilization, pH management'
             }
         }
-
-        # Return info for the detected soil type, or generic info if not found
         return soil_info.get(soil_type, {
-            "texture": "Not available for this soil type",
-            "water_retention": "Not available",
-            "fertility": "Not available",
-            "pH_tendency": "Not available",
-            "suitable_crops": [],
-            "management_tips": ["Conduct a detailed soil test for more information"]
+            'Water Retention': 'Unknown',
+            'Fertility': 'Unknown',
+            'Best For': 'Unknown',
+            'Management': 'Conduct soil test for specific recommendations'
         })
 
 # Create a singleton instance

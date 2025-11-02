@@ -5,14 +5,139 @@ import time
 from PIL import Image
 import io
 import requests
+import logging
 
 # Add project root directory to path so we can import from backend
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(project_root)
 from backend.soil_classifier import soil_classifier
 
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def process_soil_analysis(image_bytes):
+    """Process the soil image and display results"""
+    try:
+        with st.spinner('Analyzing soil image...'):
+            # Debug: Log image processing start
+            logging.debug("Starting soil image analysis.")
+
+            # Get predictions from the model
+            predictions = soil_classifier.classify_soil(image_bytes)
+
+            # Debug: Log predictions
+            logging.debug(f"Predictions received: {predictions}")
+
+            if predictions and len(predictions) > 0:
+                top_prediction = predictions[0]
+
+                # Display results
+                st.success(f"Analysis Complete!")
+
+                # Create columns for results
+                col1, col2 = st.columns([3, 2])
+
+                with col1:
+                    st.markdown("### 📊 Soil Classification Results")
+
+                    # Display top 3 predictions with confidence bars
+                    for pred in predictions[:3]:
+                        soil_type = pred["soil_type"]
+                        confidence = pred["confidence"]
+                        st.markdown(f"**{soil_type}**")
+                        st.progress(confidence/100)
+                        st.caption(f"Confidence: {confidence:.1f}%")
+
+                with col2:
+                    st.markdown("### 🌱 Soil Properties")
+                    soil_properties = get_soil_properties(top_prediction["soil_type"])
+                    for key, value in soil_properties.items():
+                        st.markdown(f"**{key}:** {value}")
+
+    except Exception as e:
+        # Debug: Log errors
+        logging.error(f"An error occurred during analysis: {str(e)}")
+        st.error(f"An error occurred during analysis: {str(e)}")
+
+def get_soil_properties(soil_type):
+    """Get properties for different soil types"""
+    properties = {
+        'Alluvial soil': {
+            'Water Retention': 'Good',
+            'Fertility': 'High',
+            'Best For': 'Rice, Wheat, Sugarcane, Jute',
+            'Management': 'Regular irrigation, balanced fertilization'
+        },
+        'Black Soil': {
+            'Water Retention': 'Very High',
+            'Fertility': 'High',
+            'Best For': 'Cotton, Soybeans, Wheat',
+            'Management': 'Proper drainage, careful tillage when wet'
+        },
+        'Cinder Soil': {
+            'Water Retention': 'Low',
+            'Fertility': 'Low',
+            'Best For': 'Succulents, Cacti',
+            'Management': 'Add organic matter, frequent watering'
+        },
+        'Clay soil': {
+            'Water Retention': 'High',
+            'Fertility': 'High',
+            'Best For': 'Rice, Wheat, Corn',
+            'Management': 'Improve drainage, add organic matter'
+        },
+        'Laterite Soil': {
+            'Water Retention': 'Poor',
+            'Fertility': 'Low',
+            'Best For': 'Cashews, Tea, Coffee',
+            'Management': 'Regular fertilization, soil amendments'
+        },
+        'Loamy soil': {
+            'Water Retention': 'Balanced',
+            'Fertility': 'High',
+            'Best For': 'Most crops and vegetables',
+            'Management': 'Maintain organic matter content'
+        },
+        'Peat Soil': {
+            'Water Retention': 'Very High',
+            'Fertility': 'High in organic matter',
+            'Best For': 'Vegetables, berries',
+            'Management': 'Manage water table, pH adjustment'
+        },
+        'Red soil': {
+            'Water Retention': 'Medium',
+            'Fertility': 'Medium',
+            'Best For': 'Groundnuts, Potatoes, Citrus fruits',
+            'Management': 'Add organic matter, proper irrigation'
+        },
+        'Sandy soil': {
+            'Water Retention': 'Low',
+            'Fertility': 'Low',
+            'Best For': 'Root vegetables, carrots',
+            'Management': 'Add organic matter, frequent watering'
+        },
+        'Yellow Soil': {
+            'Water Retention': 'Medium',
+            'Fertility': 'Medium to Low',
+            'Best For': 'Rice, Vegetables, Fruits',
+            'Management': 'Regular fertilization, pH management'
+        }
+    }
+    return properties.get(soil_type, {
+        'Water Retention': 'Unknown',
+        'Fertility': 'Unknown',
+        'Best For': 'Unknown',
+        'Management': 'Conduct soil test for specific recommendations'
+    })
+
 def show():
     st.header("🌱 Soil Type Analysis")
+
+    # Initialize session state for tracking uploaded images
+    if 'last_uploaded_file_id' not in st.session_state:
+        st.session_state.last_uploaded_file_id = None
+    if 'soil_predictions' not in st.session_state:
+        st.session_state.soil_predictions = None
 
     # Information banner
     st.markdown("""
@@ -23,29 +148,34 @@ def show():
     """, unsafe_allow_html=True)
 
     # Create tabs
-    tab1, tab2, tab3 = st.tabs(["📷 Soil Scanner", "📚 Soil Library", "📊 Analysis Results"])
+    tab1, tab2 = st.tabs(["📷 Soil Scanner", "📚 Soil Library"])
 
     with tab1:
         col1, col2 = st.columns([2, 1])
 
         with col1:
             st.markdown("### Upload Soil Image")
-
-            # File uploader for soil analysis
             uploaded_file = st.file_uploader(
                 "Choose a clear image of your soil:",
                 type=["jpg", "jpeg", "png"],
-                help="For best results, upload a well-lit, close-up image of soil"
+                help="For best results, upload a well-lit, close-up image of soil",
+                key="soil_uploader"
             )
 
-            # Add analyze button
+            # Check if a new file was uploaded
+            current_file_id = None
+            if uploaded_file is not None:
+                current_file_id = uploaded_file.file_id if hasattr(uploaded_file, 'file_id') else str(hash(uploaded_file.name + str(uploaded_file.size)))
+
+                # Display the uploaded image
+                st.image(uploaded_file, caption="Uploaded Soil Image", use_container_width=True)
+
             analyze_col1, analyze_col2 = st.columns([1, 2])
             with analyze_col1:
                 analyze_button = st.button("🔍 Analyze Soil", type="primary", use_container_width=True)
 
         with col2:
             st.markdown("### Tips for Best Results")
-
             st.markdown("""
             <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                 <h4 style="color: #558B2F; margin-top: 0;">📸 Taking Good Soil Photos</h4>
@@ -57,276 +187,95 @@ def show():
                     <li>Capture the texture and color</li>
                 </ul>
             </div>
-            
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px;">
-                <h4 style="color: #558B2F; margin-top: 0;">🌿 Why Soil Type Matters</h4>
-                <ul style="margin-bottom: 0;">
-                    <li>Determines water retention</li>
-                    <li>Affects nutrient availability</li>
-                    <li>Influences root development</li>
-                    <li>Guides crop selection</li>
-                    <li>Informs fertilization needs</li>
-                </ul>
-            </div>
             """, unsafe_allow_html=True)
 
-        # Process the image for soil analysis if button clicked
-        if analyze_button:
-            if uploaded_file is not None:
-                # Process the uploaded file
-                image_bytes = uploaded_file.getvalue()
-                process_soil_analysis(image_bytes)
-            else:
-                st.warning("Please upload an image first.")
+        # Process analysis when button is clicked or new file is uploaded
+        if analyze_button and uploaded_file is not None:
+            # Clear previous predictions if new file
+            if current_file_id != st.session_state.last_uploaded_file_id:
+                st.session_state.soil_predictions = None
+                st.session_state.last_uploaded_file_id = current_file_id
+
+            # Reset the uploaded file position for reading
+            uploaded_file.seek(0)
+            image_bytes = uploaded_file.getvalue()
+
+            # Debug: Log file upload
+            logging.debug(f"Image uploaded for analysis. File ID: {current_file_id}")
+
+            # Process the image
+            process_soil_analysis(image_bytes)
+
+        elif analyze_button:
+            st.warning("Please upload an image first.")
 
     with tab2:
         st.markdown("### Soil Types Encyclopedia")
 
-        # Display soil types information
-        soil_types = {
-            "Clay": {
-                "image_url": "https://th.bing.com/th/id/OIP.ZDANIkyARHe04g1lXUYAvQAAAA?rs=1&pid=ImgDetMain",
-                "description": "Clay soil is made up of very small particles that stick together. When wet, it becomes sticky and heavy; when dry, it becomes hard and can crack.",
-                "characteristics": ["High in nutrients", "Slow draining", "Hard to work", "Warms slowly in spring"],
-                "suitable_crops": ["Rice", "Wheat", "Cabbage", "Broccoli", "Brussels Sprouts"],
-                "management": ["Add organic matter", "Add gypsum", "Avoid working when too wet or too dry"]
+        # Display information about all soil types
+        soil_types_info = {
+            "Alluvial soil": {
+                "description": "Deposited by water, very fertile soil found in river plains and deltas.",
+                "characteristics": ["Rich in minerals", "Good drainage", "High fertility", "Easy to cultivate"],
+                "common_locations": "River valleys and deltas"
             },
-            "Sandy": {
-                "image_url": "https://th.bing.com/th/id/OIP.iO2zkFHOdmNx5UZGCkoETAHaE7?w=800&h=533&rs=1&pid=ImgDetMain",
-                "description": "Sandy soil consists of large particles that allow for good drainage but poor nutrient retention. It feels gritty and doesn't hold its shape when squeezed.",
-                "characteristics": ["Fast draining", "Low in nutrients", "Warms quickly in spring", "Easy to work"],
-                "suitable_crops": ["Potatoes", "Carrots", "Radishes", "Lettuce", "Strawberries"],
-                "management": ["Add organic matter", "Mulch well", "Water frequently", "Add fertilizer regularly"]
+            "Black Soil": {
+                "description": "Rich in calcium carbonate, iron, and magnesium, excellent for cotton cultivation.",
+                "characteristics": ["High water retention", "Rich in minerals", "Self-ploughing nature", "Good for cotton"],
+                "common_locations": "Deccan plateau regions"
             },
-            "Loamy": {
-                "image_url": "https://s15485.pcdn.co/wp-content/uploads/2023/05/loamy-soil-with-a-rich-dark-color.jpg",
-                "description": "Loam is the ideal garden soil, with a balanced mix of clay, sand, and organic material. It retains moisture but also drains well.",
-                "characteristics": ["Well-draining", "High in nutrients", "Good structure", "Easy to work"],
-                "suitable_crops": ["Most vegetables", "Corn", "Wheat", "Soybeans", "Most fruit trees"],
-                "management": ["Maintain with compost", "Regular crop rotation", "Moderate watering"]
+            "Cinder Soil": {
+                "description": "Formed from volcanic debris, well-draining but low in nutrients.",
+                "characteristics": ["Excellent drainage", "Low nutrient content", "Light weight", "Porous"],
+                "common_locations": "Volcanic regions"
             },
-            "Silty": {
-                "image_url": "https://th.bing.com/th/id/OIP.gYamfO6nNV5XrkmQE47UiwHaE8?rs=1&pid=ImgDetMain",
-                "description": "Silty soil feels smooth and silky when wet and has a floury texture when dry. It holds moisture well but can become compacted easily.",
-                "characteristics": ["Good moisture retention", "Rich in nutrients", "Prone to compaction", "Moderate drainage"],
-                "suitable_crops": ["Wetland plants", "Most vegetables", "Shrubs", "Fruit trees"],
-                "management": ["Add organic matter", "Avoid stepping on soil", "Use cover crops"]
+            "Clay soil": {
+                "description": "Dense, heavy soil with high nutrient content but poor drainage.",
+                "characteristics": ["High water retention", "Rich in nutrients", "Poor drainage", "Hard when dry"],
+                "common_locations": "Low-lying areas"
             },
-            "Peaty": {
-                "image_url": "https://img.freepik.com/premium-photo/peat-soil-planting-seedlings-flowers-ovary-closeup-natural-peat-from-swamps-selective-focus_330426-367.jpg?w=826",
-                "description": "Peaty soil is dark, spongy and contains a high amount of organic material. It holds water well but can become water-repellent when dry.",
-                "characteristics": ["High water retention", "Acidic", "High in organic matter", "Slow to warm in spring"],
-                "suitable_crops": ["Blueberries", "Rhododendrons", "Azaleas", "Cranberries"],
-                "management": ["Add lime to reduce acidity", "Improve drainage", "Add balanced fertilizers"]
+            "Laterite Soil": {
+                "description": "Rich in iron oxides and aluminum, formed in tropical regions.",
+                "characteristics": ["Poor fertility", "Good drainage", "Rich in iron", "Acidic"],
+                "common_locations": "Tropical regions with high rainfall"
             },
-            "Chalky": {
-                "image_url": "https://cdn.mos.cms.futurecdn.net/B5SaJnD3PJuNGCuCNvbgMh-1600-80.jpg",
-                "description": "Chalky soil is alkaline and often contains visible chunks of white chalk or limestone. It drains quickly and can lack nutrients.",
-                "characteristics": ["Fast draining", "Alkaline (high pH)", "Often shallow", "Warms quickly in spring"],
-                "suitable_crops": ["Spinach", "Beets", "Cabbage family", "Some herbs"],
-                "management": ["Add organic matter", "Use acidifying fertilizers", "Add iron supplements"]
+            "Loamy soil": {
+                "description": "Perfect balance of sand, silt, and clay, ideal for most plants.",
+                "characteristics": ["Good drainage", "High fertility", "Easy to work", "Good structure"],
+                "common_locations": "Temperate regions"
+            },
+            "Peat Soil": {
+                "description": "High in organic matter, formed from partially decomposed vegetation.",
+                "characteristics": ["High organic content", "High water retention", "Acidic", "Low in minerals"],
+                "common_locations": "Wetland areas"
+            },
+            "Red soil": {
+                "description": "Rich in iron oxides, giving it a distinctive red color.",
+                "characteristics": ["Good drainage", "Poor fertility", "Iron-rich", "Acidic"],
+                "common_locations": "Tropical and subtropical regions"
+            },
+            "Sandy soil": {
+                "description": "Light and free draining, warms up quickly in spring.",
+                "characteristics": ["Excellent drainage", "Low fertility", "Easy to work", "Warms quickly"],
+                "common_locations": "Coastal areas and deserts"
+            },
+            "Yellow Soil": {
+                "description": "Similar to red soil but with lower iron oxide content.",
+                "characteristics": ["Moderate drainage", "Medium fertility", "Iron deficient", "Acidic"],
+                "common_locations": "Moderate rainfall regions"
             }
         }
 
-        # Create a selectbox to choose soil type
-        selected_soil = st.selectbox(
-            "Select soil type to learn more",
-            list(soil_types.keys())
-        )
-
-        # Display information about selected soil
-        if selected_soil in soil_types:
-            soil = soil_types[selected_soil]
-
-            # Display in two columns
-            col1, col2 = st.columns([1, 1])
-
-            with col1:
-                try:
-                    st.image(soil["image_url"], caption=f"{selected_soil} Soil", use_container_width=True)
-                except:
-                    st.error("Image not available")
-
-            with col2:
-                st.markdown(f"### {selected_soil} Soil")
-                st.markdown(f"**Description:** {soil['description']}")
-
+        # Create an expandable section for each soil type
+        for soil_type, info in soil_types_info.items():
+            with st.expander(f"🌿 {soil_type}"):
+                st.markdown(f"**Description:** {info['description']}")
                 st.markdown("**Key Characteristics:**")
-                for characteristic in soil["characteristics"]:
-                    st.markdown(f"• {characteristic}")
+                for char in info['characteristics']:
+                    st.markdown(f"- {char}")
+                st.markdown(f"**Typically Found In:** {info['common_locations']}")
 
-                st.markdown("**Suitable Crops:**")
-                for crop in soil["suitable_crops"]:
-                    st.markdown(f"• {crop}")
-
-                st.markdown("**Management Tips:**")
-                for tip in soil["management"]:
-                    st.markdown(f"• {tip}")
-
-    with tab3:
-        st.markdown("### Previous Analysis Results")
-
-        # Show previous analysis results if available
-        if "soil_analysis_history" in st.session_state and st.session_state.soil_analysis_history:
-            for i, result in enumerate(st.session_state.soil_analysis_history):
-                with st.expander(f"Analysis {i+1}: {result['soil_type']} ({result['timestamp']})"):
-                    st.markdown(f"**Soil Type:** {result['soil_type']}")
-                    st.markdown(f"**Confidence:** {result['confidence']:.1f}%")
-
-                    if "characteristics" in result:
-                        st.markdown("**Soil Characteristics:**")
-                        for key, value in result["characteristics"].items():
-                            if key != "suitable_crops" and key != "management_tips":
-                                st.markdown(f"• **{key.replace('_', ' ').title()}:** {value}")
-
-                        if "suitable_crops" in result["characteristics"]:
-                            st.markdown("**Suitable Crops:**")
-                            for crop in result["characteristics"]["suitable_crops"]:
-                                st.markdown(f"• {crop}")
-
-                        if "management_tips" in result["characteristics"]:
-                            st.markdown("**Management Tips:**")
-                            for tip in result["characteristics"]["management_tips"]:
-                                st.markdown(f"• {tip}")
-        else:
-            st.info("No previous soil analysis results available. Upload a soil image to perform analysis.")
-
-
-def process_soil_analysis(image_bytes):
-    """
-    Process image for soil analysis
-
-    Args:
-        image_bytes: Bytes of the image to analyze
-    """
-    try:
-        with st.spinner("Analyzing soil image..."):
-            # Add a slight delay to simulate processing
-            time.sleep(1.5)
-
-            # Make prediction using soil classifier
-            results = soil_classifier.classify_soil(io.BytesIO(image_bytes))
-
-            if results["success"]:
-                predictions = results["predictions"]
-
-                # Display top prediction
-                top_prediction = predictions[0]
-                confidence = top_prediction["confidence"]
-                soil_type = top_prediction["soil_type"]
-                soil_characteristics = results.get("soil_characteristics", {})
-
-                # Display result in a visually appealing way
-                st.markdown(f"""
-                <div style="background-color: #2E7D32; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0;">
-                    <h2 style="color: white; margin: 0;">Soil Analysis Result</h2>
-                    <h1 style="color: white; margin: 10px 0; font-size: 36px;">{soil_type} Soil</h1>
-                    <p style="color: white; font-weight: bold;">Confidence: {confidence:.1f}%</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-                # Show top 3 predictions as options
-                st.subheader("Alternative Possibilities:")
-
-                # Create columns for each alternative
-                cols = st.columns(len(predictions) - 1) if len(predictions) > 1 else [st.container()]
-
-                # Display alternatives (skip the first one as it's already displayed)
-                for i, (col, pred) in enumerate(zip(cols, predictions[1:])):
-                    with col:
-                        prob = pred["confidence"]
-                        alt_soil = pred["soil_type"]
-
-                        st.markdown(f"""
-                        <div style="background-color: #F1F8E9; padding: 10px; border-radius: 10px; text-align: center; height: 100%;">
-                            <p style="font-weight: bold; margin-bottom: 5px;">{alt_soil} Soil</p>
-                            <p>Confidence: {prob:.1f}%</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                # Display soil characteristics info
-                if soil_characteristics:
-                    st.subheader("Soil Characteristics")
-
-                    # Create two columns
-                    col1, col2 = st.columns(2)
-
-                    with col1:
-                        st.markdown(f"""
-                        <div style="background-color: #E3F2FD; padding: 15px; border-radius: 10px; margin: 10px 0;">
-                            <h4 style="margin-top: 0;">Physical Properties</h4>
-                            <p><strong>Texture:</strong> {soil_characteristics.get('texture', 'Not available')}</p>
-                            <p><strong>Water Retention:</strong> {soil_characteristics.get('water_retention', 'Not available')}</p>
-                            <p><strong>pH Tendency:</strong> {soil_characteristics.get('pH_tendency', 'Not available')}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                    with col2:
-                        st.markdown(f"""
-                        <div style="background-color: #E3F2FD; padding: 15px; border-radius: 10px; margin: 10px 0;">
-                            <h4 style="margin-top: 0;">Agricultural Value</h4>
-                            <p><strong>Fertility:</strong> {soil_characteristics.get('fertility', 'Not available')}</p>
-                            <p><strong>Suitable For:</strong> {', '.join(soil_characteristics.get('suitable_crops', ['Not available'])[:3])}...</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-                    # Show suitable crops with icons
-                    st.subheader("Suitable Crops")
-                    crop_cols = st.columns(3)
-
-                    suitable_crops = soil_characteristics.get('suitable_crops', [])
-                    crop_icons = {
-                        "Rice": "🌾", "Wheat": "🌾", "Corn": "🌽", "Potatoes": "🥔",
-                        "Carrots": "🥕", "Lettuce": "🥬", "Strawberries": "🍓",
-                        "Blueberries": "🫐", "Cabbage": "🥬", "Broccoli": "🥦",
-                        "Brussels Sprouts": "🥬", "Soybeans": "🫘", "Watermelon": "🍉"
-                    }
-
-                    for i, crop in enumerate(suitable_crops):
-                        col_idx = i % 3
-                        icon = crop_icons.get(crop, "🌱")
-                        with crop_cols[col_idx]:
-                            st.markdown(f"""
-                            <div style="background-color: #F1F8E9; padding: 10px; border-radius: 10px; text-align: center; margin: 5px 0;">
-                                <p style="font-size: 24px; margin: 5px 0;">{icon}</p>
-                                <p style="font-weight: bold; margin: 5px 0;">{crop}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                    # Management tips in an expander
-                    with st.expander("Soil Management Tips", expanded=True):
-                        tips = soil_characteristics.get('management_tips', [])
-                        for i, tip in enumerate(tips):
-                            st.markdown(f"""
-                            <div style="background-color: #F1F8E9; padding: 10px; border-radius: 10px; margin: 5px 0;">
-                                <p style="margin: 0;"><strong>{i+1}.</strong> {tip}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                # Save analysis results to session state
-                if "soil_analysis_history" not in st.session_state:
-                    st.session_state.soil_analysis_history = []
-
-                # Add current analysis to history
-                analysis_record = {
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M"),
-                    "soil_type": soil_type,
-                    "confidence": confidence,
-                    "characteristics": soil_characteristics
-                }
-                st.session_state.soil_analysis_history.insert(0, analysis_record)
-
-                # Keep only the last 10 records
-                if len(st.session_state.soil_analysis_history) > 10:
-                    st.session_state.soil_analysis_history = st.session_state.soil_analysis_history[:10]
-
-            else:
-                st.error(f"Error during soil analysis: {results.get('error', 'Unknown error')}")
-                st.info("Please try again with a clearer image of the soil.")
-
-    except Exception as e:
-        st.error(f"Error processing image: {str(e)}")
-        st.info("Please make sure the image is valid and try again.")
-
-if __name__ == "__main__":
-    show()
+                properties = get_soil_properties(soil_type)
+                st.markdown("**Agricultural Properties:**")
+                for key, value in properties.items():
+                    st.markdown(f"- **{key}:** {value}")
