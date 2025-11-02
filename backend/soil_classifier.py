@@ -14,7 +14,7 @@ class SoilClassifier(nn.Module):
     def __init__(self, num_classes):
         super(SoilClassifier, self).__init__()
         # Using ResNet50 as base model
-        self.model = models.resnet50(pretrained=False)
+        self.model = models.resnet50(weights=None)  # Updated for PyTorch 2.0+ compatibility
         num_ftrs = self.model.fc.in_features
         # Replace fc with a sequential layer to match saved model structure
         self.model.fc = nn.Sequential(
