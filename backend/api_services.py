@@ -3,71 +3,104 @@ import requests
 def get_location_from_ip():
     """
     Get the user's location based on their IP address.
-    Returns the user's city and country as a string.
+    Returns a dictionary with city, region, country, and coordinates.
     """
     try:
         # Using ipinfo.io to get location data from IP
         response = requests.get("https://ipinfo.io/json")
         if response.status_code == 200:
             data = response.json()
-            city = data.get("city", "Unknown")
+            city = data.get("city", "New Delhi")
             region = data.get("region", "")
-            country = data.get("country", "")
+            country = data.get("country", "IN")
+            loc = data.get("loc", "28.6139,77.2090")  # Default to Delhi coords
 
-            # Construct location string
-            if city != "Unknown":
-                location = f"{city}, {country}"
-                return location
-            else:
-                return "New Delhi, India"  # Default fallback
+            # Parse coordinates
+            lat, lon = loc.split(",") if "," in loc else ("28.6139", "77.2090")
+
+            # Return dictionary
+            return {
+                "city": city,
+                "region": region,
+                "country": country,
+                "latitude": float(lat),
+                "longitude": float(lon),
+                "location_string": f"{city}, {country}"
+            }
         else:
-            return "New Delhi, India"  # Default fallback
-    except Exception:
-        return "New Delhi, India"  # Default fallback
+            # Default fallback to Delhi
+            return {
+                "city": "New Delhi",
+                "region": "Delhi",
+                "country": "IN",
+                "latitude": 28.6139,
+                "longitude": 77.2090,
+                "location_string": "New Delhi, India"
+            }
+    except Exception as e:
+        # Default fallback to Delhi
+        return {
+            "city": "New Delhi",
+            "region": "Delhi",
+            "country": "IN",
+            "latitude": 28.6139,
+            "longitude": 77.2090,
+            "location_string": "New Delhi, India"
+        }
 
 
-def get_visualcrossing_weather(location, api_key):
+def get_visualcrossing_weather(location):
     """
     Fetch weather data for given location (lat,lon or city name) from Visual Crossing API.
     Returns temperature (°C), rainfall (mm), and humidity (%) for today and forecast.
+
+    Args:
+        location: Can be a city name like "New Delhi, India" or coordinates like "28.6139,77.2090"
     """
+    # API key is embedded in the URL
     url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location}?unitGroup=metric&key=YTZ9ZL9DDNTZCPM6D8T77WGTL&contentType=json"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        today = data['days'][0]  # today's weather
 
-        # Get current weather
-        weather_info = {
-            "temperature": today.get('temp', 0),      # average temperature in °C
-            "rainfall": today.get('precip', 0),       # precipitation in mm
-            "humidity": today.get('humidity', 0)      # humidity percentage
-        }
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            today = data['days'][0]  # today's weather
 
-        # Get forecast data for next 7 days
-        forecast = []
-        for i in range(0, 7):  # 0 is today, 1-7 are the next 7 days
-            if i < len(data['days']):
-                day = data['days'][i]
-                forecast_day = {
-                    "date": day.get('datetime', ''),
-                    "temperature": day.get('temp', 0),
-                    "tempMin": day.get('tempmin', 0),
-                    "tempMax": day.get('tempmax', 0),
-                    "rainfall": day.get('precip', 0),
-                    "humidity": day.get('humidity', 0),
-                    "conditions": day.get('conditions', ''),
-                    "description": day.get('description', ''),
-                    "icon": day.get('icon', 'cloudy')
-                }
-                forecast.append(forecast_day)
+            # Get current weather
+            weather_info = {
+                "temperature": today.get('temp', 0),      # average temperature in °C
+                "rainfall": today.get('precip', 0),       # precipitation in mm
+                "humidity": today.get('humidity', 0)      # humidity percentage
+            }
 
-        # Add forecast to the response
-        weather_info['forecast'] = forecast
+            # Get forecast data for next 7 days
+            forecast = []
+            for i in range(0, 7):  # 0 is today, 1-7 are the next 7 days
+                if i < len(data['days']):
+                    day = data['days'][i]
+                    forecast_day = {
+                        "date": day.get('datetime', ''),
+                        "temperature": day.get('temp', 0),
+                        "tempMin": day.get('tempmin', 0),
+                        "tempMax": day.get('tempmax', 0),
+                        "rainfall": day.get('precip', 0),
+                        "humidity": day.get('humidity', 0),
+                        "conditions": day.get('conditions', ''),
+                        "description": day.get('description', ''),
+                        "icon": day.get('icon', 'cloudy')
+                    }
+                    forecast.append(forecast_day)
 
-        return weather_info
-    else:
-        raise Exception(f"Visual Crossing API error: {response.status_code} - {response.text}")
+            # Add forecast to the response
+            weather_info['forecast'] = forecast
+
+            return weather_info
+        else:
+            print(f"Visual Crossing API error: {response.status_code} - {response.text}")
+            return None
+    except Exception as e:
+        print(f"Error fetching weather data: {str(e)}")
+        return None
 
 
 def get_soil_data(lat, lon):

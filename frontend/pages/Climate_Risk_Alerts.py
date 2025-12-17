@@ -6,14 +6,55 @@ import os
 from datetime import datetime
 
 def show():
-    st.header("🌦️ Climate Risk Alerts")
-
-    # Information banner
+    # Enhanced header with modern design
     st.markdown("""
-    <div style="background-color: #E8F5E9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2E7D32;">
-        <h3 style="color: #2E7D32; margin-top: 0;">Early Warning System</h3>
-        <p>Our climate risk analysis uses advanced AI to predict potential weather-related risks to your crops. 
-        Enter your location and environmental parameters to receive customized alerts and recommendations.</p>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; 
+                   background: linear-gradient(135deg, #1976D2, #42A5F5);
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🌦️ Climate Risk Alerts
+        </h1>
+        <p style="font-size: 1.2rem; color: #666; margin: 0;">
+            AI-Powered Weather Risk Assessment & Early Warning System
+        </p>
+        <div style="width: 80px; height: 4px; background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                    margin: 1rem auto; border-radius: 2px;"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Enhanced information banner
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+                padding: 2rem; border-radius: 16px; margin-bottom: 2rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+                border: 1px solid rgba(25, 118, 210, 0.1); position: relative;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
+                    background: linear-gradient(180deg, #1976D2, #42A5F5); border-radius: 0 4px 4px 0;"></div>
+        <div style="display: flex; align-items: start; gap: 1.5rem;">
+            <div style="font-size: 3rem;">🤖</div>
+            <div>
+                <h3 style="color: #1976D2; margin: 0 0 1rem 0; font-size: 1.5rem;">Advanced Climate Risk Analysis</h3>
+                <p style="margin: 0 0 1rem 0; line-height: 1.6; font-size: 1.05rem;">
+                    Leverage <strong>machine learning and real-time weather data</strong> to predict potential climate-related 
+                    risks to your crops. Receive <strong>personalized alerts and actionable recommendations</strong> to protect 
+                    your harvest from adverse weather conditions.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+                    <div style="background: rgba(25, 118, 210, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #1976D2;">
+                        🌧️ Rainfall Prediction
+                    </div>
+                    <div style="background: rgba(25, 118, 210, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #1976D2;">
+                        🌡️ Temperature Alerts
+                    </div>
+                    <div style="background: rgba(25, 118, 210, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #1976D2;">
+                        💧 Flood Risk Assessment
+                    </div>
+                    <div style="background: rgba(25, 118, 210, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #1976D2;">
+                        🌾 Crop Protection
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -21,10 +62,13 @@ def show():
     tab1, tab2, tab3 = st.tabs(["🔍 Risk Prediction", "🗺️ Risk Map", "📊 Historical Analysis"])
 
     with tab1:
-        col1, col2 = st.columns([2, 1])
-
         # Add 7-Day Forecast at the top of the Risk Prediction tab
-        st.subheader("🔮 7-Day Weather Forecast")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h3 style="color: #1976D2; margin-bottom: 0.5rem;">🔮 7-Day Weather Forecast</h3>
+            <p style="color: #666; font-size: 0.95rem;">Real-time weather predictions and risk indicators</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Get forecast data from session state
         forecast_data = None
@@ -71,14 +115,18 @@ def show():
                     risk_color = "#FF9800"
 
                 col.markdown(f"""
-                <div style="background-color: #F1F8E9; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 5px; border-top: 4px solid {risk_color};">
-                    <p style="font-weight: bold; margin-bottom: 5px;">{day_name}</p>
-                    <p style="font-size: 24px; margin: 5px 0;">{icon}</p>
-                    <p style="font-size: 18px; margin: 5px 0;">{day['temperature']}°C</p>
-                    <p style="font-size: 12px; margin: 2px 0;">🔽 {day['tempMin']}° 🔼 {day['tempMax']}°</p>
-                    <p style="font-size: 12px; margin: 2px 0;">💧 {day['humidity']}%</p>
-                    <p style="font-size: 12px; margin: 2px 0;">🌧️ {day['rainfall']} mm</p>
-                    <p style="font-size: 10px; background-color: {risk_color}; color: white; padding: 2px 5px; border-radius: 10px; margin-top: 5px;">{risk_level} Risk</p>
+                <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                            padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 5px; 
+                            border-top: 4px solid {risk_color};
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+                    <p style="font-weight: bold; margin-bottom: 8px; color: #1976D2; font-size: 0.9rem;">{day_name}</p>
+                    <p style="font-size: 28px; margin: 8px 0;">{icon}</p>
+                    <p style="font-size: 20px; margin: 8px 0; font-weight: 600; color: #1976D2;">{day['temperature']}°C</p>
+                    <p style="font-size: 11px; margin: 3px 0; color: #666;">🔽 {day['tempMin']}° 🔼 {day['tempMax']}°</p>
+                    <p style="font-size: 11px; margin: 3px 0; color: #666;">💧 {day['humidity']}%</p>
+                    <p style="font-size: 11px; margin: 3px 0; color: #666;">🌧️ {day['rainfall']} mm</p>
+                    <p style="font-size: 10px; background-color: {risk_color}; color: white; padding: 4px 8px; 
+                       border-radius: 12px; margin-top: 8px; font-weight: 600;">{risk_level} Risk</p>
                 </div>
                 """, unsafe_allow_html=True)
         else:
@@ -87,13 +135,26 @@ def show():
         # Add a separator between forecast and risk prediction form
         st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
 
+        # Create two columns for form and info
+        col1, col2 = st.columns([2, 1])
+
         with col1:
-            st.markdown("### Location & Environmental Data")
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📍 Location & Environmental Data</h3>
+                <p style="color: #666; font-size: 0.95rem;">Enter accurate location and climate parameters for risk assessment</p>
+            </div>
+            """, unsafe_allow_html=True)
 
             # Form for input parameters
             with st.form("risk_prediction_form"):
                 # Location parameters
-                st.markdown("#### 📍 Location Details")
+                st.markdown("""
+                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                    <h4 style="color: white; margin: 0; font-size: 1rem;">📍 Location Details</h4>
+                </div>
+                """, unsafe_allow_html=True)
                 loc_col1, loc_col2 = st.columns(2)
 
                 with loc_col1:
@@ -117,7 +178,12 @@ def show():
                     )
 
                 # Weather parameters
-                st.markdown("#### 🌤️ Weather Parameters")
+                st.markdown("""
+                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                    <h4 style="color: white; margin: 0; font-size: 1rem;">🌤️ Weather Parameters</h4>
+                </div>
+                """, unsafe_allow_html=True)
                 weather_col1, weather_col2, weather_col3 = st.columns(3)
 
                 with weather_col1:
@@ -147,7 +213,12 @@ def show():
                     )
 
                 # Hydrological parameters
-                st.markdown("#### 💧 Hydrological Parameters")
+                st.markdown("""
+                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                    <h4 style="color: white; margin: 0; font-size: 1rem;">💧 Hydrological Parameters</h4>
+                </div>
+                """, unsafe_allow_html=True)
                 hydro_col1, hydro_col2 = st.columns(2)
 
                 with hydro_col1:
@@ -167,7 +238,12 @@ def show():
                     )
 
                 # Geographical parameters
-                st.markdown("#### 🏞️ Geographical Parameters")
+                st.markdown("""
+                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                    <h4 style="color: white; margin: 0; font-size: 1rem;">🏞️ Geographical Parameters</h4>
+                </div>
+                """, unsafe_allow_html=True)
                 geo_col1, geo_col2 = st.columns(2)
 
                 with geo_col1:
@@ -187,7 +263,12 @@ def show():
                     )
 
                 # Additional parameters
-                st.markdown("#### 🧪 Soil & Infrastructure")
+                st.markdown("""
+                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                    <h4 style="color: white; margin: 0; font-size: 1rem;">🧪 Soil & Infrastructure</h4>
+                </div>
+                """, unsafe_allow_html=True)
                 add_col1, add_col2, add_col3 = st.columns(3)
 
                 with add_col1:
@@ -228,7 +309,12 @@ def show():
                 submitted = st.form_submit_button("🔍 Predict Flood Risk", use_container_width=True)
 
         with col2:
-            st.markdown("### 💡 Understanding Risk Factors")
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="color: #1976D2; margin-bottom: 0.5rem;">💡 Understanding Risk Factors</h3>
+                <p style="color: #666; font-size: 0.95rem;">Key parameters affecting climate risk</p>
+            </div>
+            """, unsafe_allow_html=True)
 
             # Expandable sections with educational content
             with st.expander("📌 Location Factors", expanded=True):
@@ -259,12 +345,17 @@ def show():
 
             # Quick risk overview
             st.markdown("""
-            <div style="background-color: #FFF3E0; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 5px solid #FF9800;">
-                <h4 style="color: #E65100; margin-top: 0;">Current Risk Levels</h4>
-                <p><strong>🌧️ Rainfall Risk:</strong> <span style="color: orange;">Moderate</span></p>
-                <p><strong>🌊 Flooding Risk:</strong> <span style="color: green;">Low</span></p>
-                <p><strong>🔥 Drought Risk:</strong> <span style="color: red;">High</span></p>
-                <p style="font-size: 12px;"><i>Based on regional weather data from June 1, 2025</i></p>
+            <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); 
+                        padding: 1.5rem; border-radius: 12px; margin-top: 20px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                        border: 1px solid rgba(255, 152, 0, 0.2); position: relative;">
+                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
+                            background: linear-gradient(180deg, #F57C00, #FFA726); border-radius: 0 4px 4px 0;"></div>
+                <h4 style="color: #E65100; margin: 0 0 1rem 0; font-size: 1.1rem;">📊 Current Risk Levels</h4>
+                <p style="margin: 0.5rem 0;"><strong>🌧️ Rainfall Risk:</strong> <span style="color: #FF9800; font-weight: 600;">Moderate</span></p>
+                <p style="margin: 0.5rem 0;"><strong>🌊 Flooding Risk:</strong> <span style="color: #4CAF50; font-weight: 600;">Low</span></p>
+                <p style="margin: 0.5rem 0;"><strong>🔥 Drought Risk:</strong> <span style="color: #F44336; font-weight: 600;">High</span></p>
+                <p style="font-size: 0.85rem; color: #666; margin: 1rem 0 0 0;"><i>Based on regional weather data from June 1, 2025</i></p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -370,10 +461,12 @@ def show():
                 risk_percentage = int(flood_risk_prob * 100)
 
                 st.markdown(f"""
-                <div style="background-color: {risk_color}; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0;">
-                    <h2 style="color: white; margin: 0;">Flood Risk Assessment</h2>
-                    <h1 style="color: white; margin: 10px 0; font-size: 36px;">{risk_text}</h1>
-                    <p style="color: white; font-weight: bold;">Risk Probability: {risk_percentage}%</p>
+                <div style="background: linear-gradient(135deg, {risk_color}E6, {risk_color}); 
+                            padding: 2rem; border-radius: 16px; text-align: center; margin: 20px 0;
+                            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);">
+                    <h2 style="color: white; margin: 0 0 0.5rem 0; font-size: 1.5rem;">🌊 Flood Risk Assessment</h2>
+                    <h1 style="color: white; margin: 0.5rem 0; font-size: 3rem; font-weight: 700;">{risk_text}</h1>
+                    <p style="color: white; font-weight: bold; font-size: 1.2rem; margin: 0.5rem 0;">Risk Probability: {risk_percentage}%</p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -391,11 +484,21 @@ def show():
                 st.markdown(gauge_html, unsafe_allow_html=True)
 
                 # Show risk factors
-                st.subheader("Risk Analysis")
+                st.markdown("""
+                <div style="text-align: center; margin: 2rem 0 1.5rem 0;">
+                    <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📊 Risk Analysis</h3>
+                    <p style="color: #666; font-size: 0.95rem;">Detailed breakdown of risk factors and recommendations</p>
+                </div>
+                """, unsafe_allow_html=True)
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    st.markdown("#### Critical Factors")
+                    st.markdown("""
+                    <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                                padding: 8px 15px; border-radius: 8px; margin: 0 0 15px 0;">
+                        <h4 style="color: white; margin: 0; font-size: 1rem;">🔍 Critical Factors</h4>
+                    </div>
+                    """, unsafe_allow_html=True)
                     factors_df = {
                         "Rainfall": {"value": f"{rainfall} mm", "impact": "High" if rainfall > 100 else "Medium" if rainfall > 50 else "Low"},
                         "River Discharge": {"value": f"{river_discharge} m³/s", "impact": "High" if river_discharge > 200 else "Medium" if river_discharge > 100 else "Low"},
@@ -412,61 +515,96 @@ def show():
                             impact_color = "#4CAF50"
 
                         st.markdown(f"""
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background-color: #F1F8E9; border-radius: 5px;">
-                            <div>{factor}: {data['value']}</div>
-                            <div style="background-color: {impact_color}; color: white; padding: 0 10px; border-radius: 10px;">{data['impact']}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;
+                                    margin-bottom: 10px; padding: 12px; 
+                                    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                                    border-radius: 8px; border-left: 3px solid {impact_color};
+                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="color: #1976D2; font-weight: 500;">{factor}: {data['value']}</div>
+                            <div style="background-color: {impact_color}; color: white; padding: 4px 12px; 
+                                        border-radius: 12px; font-size: 0.85rem; font-weight: 600;">{data['impact']}</div>
                         </div>
                         """, unsafe_allow_html=True)
 
                 with col2:
-                    st.markdown("#### Recommendations")
+                    st.markdown("""
+                    <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                                padding: 8px 15px; border-radius: 8px; margin: 0 0 15px 0;">
+                        <h4 style="color: white; margin: 0; font-size: 1rem;">💡 Recommendations</h4>
+                    </div>
+                    """, unsafe_allow_html=True)
                     for i, rec in enumerate(recommendations):
                         st.markdown(f"""
-                        <div style="margin-bottom: 10px; padding: 8px; background-color: #F1F8E9; border-radius: 5px;">
-                            {i+1}. {rec}
+                        <div style="margin-bottom: 10px; padding: 12px; 
+                                    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                                    border-radius: 8px; border-left: 3px solid #1976D2;
+                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <span style="color: #1976D2; font-weight: 600;">{i+1}.</span> <span style="color: #333;">{rec}</span>
                         </div>
                         """, unsafe_allow_html=True)
 
                 # Show alert timeline
-                st.subheader("Projected Alert Timeline")
+                st.markdown("""
+                <div style="text-align: center; margin: 2rem 0 1.5rem 0;">
+                    <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📅 Projected Alert Timeline</h3>
+                    <p style="color: #666; font-size: 0.95rem;">Expected risk progression over time</p>
+                </div>
+                """, unsafe_allow_html=True)
                 timeline_html = """
-                <div style="background-color: #F5F5F5; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                            padding: 2rem; border-radius: 12px; margin: 15px 0;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
                     <div style="display: flex; position: relative;">
                         <div style="flex: 1; text-align: center; z-index: 2;">
-                            <div style="background-color: #81C784; border-radius: 50%; width: 25px; height: 25px; margin: 0 auto;"></div>
-                            <p style="margin: 5px 0; font-size: 14px;">Current</p>
-                            <p style="margin: 0; font-size: 12px;">Jun 1</p>
+                            <div style="background-color: #81C784; border-radius: 50%; width: 30px; height: 30px; margin: 0 auto; 
+                                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);"></div>
+                            <p style="margin: 8px 0 2px 0; font-size: 14px; font-weight: 600; color: #1976D2;">Current</p>
+                            <p style="margin: 0; font-size: 12px; color: #666;">Jun 1</p>
                         </div>
                         <div style="flex: 1; text-align: center; z-index: 2;">
-                            <div style="background-color: #FFB74D; border-radius: 50%; width: 25px; height: 25px; margin: 0 auto;"></div>
-                            <p style="margin: 5px 0; font-size: 14px;">Warning</p>
-                            <p style="margin: 0; font-size: 12px;">Jun 15</p>
+                            <div style="background-color: #FFB74D; border-radius: 50%; width: 30px; height: 30px; margin: 0 auto;
+                                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);"></div>
+                            <p style="margin: 8px 0 2px 0; font-size: 14px; font-weight: 600; color: #1976D2;">Warning</p>
+                            <p style="margin: 0; font-size: 12px; color: #666;">Jun 15</p>
                         </div>
                         <div style="flex: 1; text-align: center; z-index: 2;">
-                            <div style="background-color: #E57373; border-radius: 50%; width: 25px; height: 25px; margin: 0 auto;"></div>
-                            <p style="margin: 5px 0; font-size: 14px;">Peak Risk</p>
-                            <p style="margin: 0; font-size: 12px;">Jul 1</p>
+                            <div style="background-color: #E57373; border-radius: 50%; width: 30px; height: 30px; margin: 0 auto;
+                                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);"></div>
+                            <p style="margin: 8px 0 2px 0; font-size: 14px; font-weight: 600; color: #1976D2;">Peak Risk</p>
+                            <p style="margin: 0; font-size: 12px; color: #666;">Jul 1</p>
                         </div>
                         <div style="flex: 1; text-align: center; z-index: 2;">
-                            <div style="background-color: #81C784; border-radius: 50%; width: 25px; height: 25px; margin: 0 auto;"></div>
-                            <p style="margin: 5px 0; font-size: 14px;">Decreasing</p>
-                            <p style="margin: 0; font-size: 12px;">Jul 15</p>
+                            <div style="background-color: #81C784; border-radius: 50%; width: 30px; height: 30px; margin: 0 auto;
+                                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);"></div>
+                            <p style="margin: 8px 0 2px 0; font-size: 14px; font-weight: 600; color: #1976D2;">Decreasing</p>
+                            <p style="margin: 0; font-size: 12px; color: #666;">Jul 15</p>
                         </div>
-                        <div style="position: absolute; height: 3px; background: linear-gradient(to right, #81C784, #FFB74D, #E57373, #81C784); top: 12px; width: 100%; z-index: 1;"></div>
+                        <div style="position: absolute; height: 4px; background: linear-gradient(to right, #81C784, #FFB74D, #E57373, #81C784); 
+                                    top: 14px; width: 100%; z-index: 1; border-radius: 2px;"></div>
                     </div>
                 </div>
                 """
                 st.markdown(timeline_html, unsafe_allow_html=True)
 
                 # Action plan
-                st.subheader("Action Plan")
+                st.markdown("""
+                <div style="text-align: center; margin: 2rem 0 1.5rem 0;">
+                    <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📋 Action Plan</h3>
+                    <p style="color: #666; font-size: 0.95rem;">Recommended timeline for protective measures</p>
+                </div>
+                """, unsafe_allow_html=True)
                 st.markdown(f"""
-                <div style="background-color: #E8F5E9; padding: 15px; border-radius: 10px;">
-                    <h4 style="color: #2E7D32; margin-top: 0;">Recommended Timeline</h4>
-                    <ul>
-                        <li><strong>Immediate:</strong> {'Monitor water levels and weather forecasts daily' if risk_text != 'Low Risk' else 'Maintain regular farm operations'}</li>
-                        <li><strong>This Week:</strong> {'Implement drainage improvements and secure equipment' if risk_text == 'High Risk' else 'Review farm emergency plan'}</li>
-                        <li><strong>This Month:</strong> {'Consider crop insurance options and plan for potential replanting' if risk_text == 'High Risk' else 'Normal seasonal planning'}</li>
+                <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                            padding: 1.5rem; border-radius: 12px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                            border: 1px solid rgba(25, 118, 210, 0.2); position: relative;">
+                    <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
+                                background: linear-gradient(180deg, #1976D2, #42A5F5); border-radius: 0 4px 4px 0;"></div>
+                    <h4 style="color: #1976D2; margin: 0 0 1rem 0;">Recommended Timeline</h4>
+                    <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8;">
+                        <li style="color: #333;"><strong style="color: #1976D2;">Immediate:</strong> {'Monitor water levels and weather forecasts daily' if risk_text != 'Low Risk' else 'Maintain regular farm operations'}</li>
+                        <li style="color: #333;"><strong style="color: #1976D2;">This Week:</strong> {'Implement drainage improvements and secure equipment' if risk_text == 'High Risk' else 'Review farm emergency plan'}</li>
+                        <li style="color: #333;"><strong style="color: #1976D2;">This Month:</strong> {'Consider crop insurance options and plan for potential replanting' if risk_text == 'High Risk' else 'Normal seasonal planning'}</li>
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
@@ -477,12 +615,20 @@ def show():
 
     with tab2:
         # Risk Map Visualization Tab
-        st.markdown("### Risk Map by Location")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h3 style="color: #1976D2; margin-bottom: 0.5rem;">🗺️ Risk Map by Location</h3>
+            <p style="color: #666; font-size: 0.95rem;">Interactive climate risk visualization across regions</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Simple map visualization
         st.markdown("""
-        <div style="background-color: #F1F8E9; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            <p>The map below shows climate risk assessments across different regions. Click on a location to see detailed risk profiles.</p>
+        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    padding: 1.5rem; border-radius: 12px; margin-bottom: 20px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                    border-left: 4px solid #1976D2;">
+            <p style="margin: 0; line-height: 1.6; color: #333;">The map below shows climate risk assessments across different regions. Click on a location to see detailed risk profiles.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -490,7 +636,12 @@ def show():
 
         with map_col1:
             # Interactive climate risk heatmap with Streamlit's map components
-            st.subheader("Climate Risk Heatmap")
+            st.markdown("""
+            <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                        padding: 8px 15px; border-radius: 8px; margin: 0 0 15px 0;">
+                <h4 style="color: white; margin: 0; font-size: 1rem;">🌍 Climate Risk Heatmap</h4>
+            </div>
+            """, unsafe_allow_html=True)
 
             # Create some sample risk data points (lat, lon, risk_level)
             risk_data = [
@@ -545,7 +696,12 @@ def show():
             """, unsafe_allow_html=True)
 
         with map_col2:
-            st.subheader("Location Risk Details")
+            st.markdown("""
+            <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                        padding: 8px 15px; border-radius: 8px; margin: 0 0 15px 0;">
+                <h4 style="color: white; margin: 0; font-size: 1rem;">📍 Location Risk Details</h4>
+            </div>
+            """, unsafe_allow_html=True)
             st.write("Click on a location for more details:")
 
             # Sample data for selected locations
@@ -571,9 +727,11 @@ def show():
 
             # Display risk information in a card
             st.markdown(f"""
-            <div style="background-color: {risk_color}; padding: 15px; border-radius: 10px; text-align: center; margin: 10px 0;">
-                <h3 style="color: white; margin: 0;">{selected_location}</h3>
-                <p style="color: white; font-weight: bold; margin: 5px 0;">{risk_level} Risk Area</p>
+            <div style="background: linear-gradient(135deg, {risk_color}E6, {risk_color}); 
+                        padding: 1.5rem; border-radius: 12px; text-align: center; margin: 15px 0;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+                <h3 style="color: white; margin: 0 0 0.5rem 0; font-size: 1.3rem;">{selected_location}</h3>
+                <p style="color: white; font-weight: 600; margin: 0; font-size: 1.1rem;">{risk_level} Risk Area</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -587,8 +745,12 @@ def show():
 
     with tab3:
         # Historical Analysis Tab
-        st.markdown("### Historical Flood Analysis")
-        st.write("Track patterns and changes in climate risks over time.")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📊 Historical Climate Analysis</h3>
+            <p style="color: #666; font-size: 0.95rem;">Track patterns and changes in climate risks over time</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Year range slider
         selected_years = st.slider("Select year range to analyze",
@@ -597,9 +759,12 @@ def show():
                                  value=(2018, 2025))
 
         st.markdown("""
-        <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin: 15px 0;">
-            <p>Analysis shows a <strong>23% increase</strong> in flood risk in Northern India and a 
-            <strong>17% increase</strong> in drought conditions in Central regions over the selected period.</p>
+        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    padding: 1.5rem; border-radius: 12px; margin: 20px 0;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                    border-left: 4px solid #1976D2;">
+            <p style="margin: 0; line-height: 1.6; color: #333;">Analysis shows a <strong style="color: #1976D2;">23% increase</strong> in flood risk in Northern India and a 
+            <strong style="color: #1976D2;">17% increase</strong> in drought conditions in Central regions over the selected period.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -623,16 +788,24 @@ def show():
         st.bar_chart(hist_data.set_index("Year"))
 
         # Additional insights
-        st.subheader("Key Insights")
+        st.markdown("""
+        <div style="text-align: center; margin: 2rem 0 1.5rem 0;">
+            <h3 style="color: #1976D2; margin-bottom: 0.5rem;">💡 Key Insights</h3>
+            <p style="color: #666; font-size: 0.95rem;">Climate trends and adaptation strategies</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Display insights in columns
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("""
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; height: 100%;">
-                <h4 style="color: #2E7D32;">Trends</h4>
-                <ul>
+            <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                        padding: 1.5rem; border-radius: 12px; height: 100%;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                        border-left: 4px solid #1976D2;">
+                <h4 style="color: #1976D2; margin: 0 0 1rem 0;">📈 Trends</h4>
+                <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8; color: #333;">
                     <li>Increasing frequency of extreme weather events</li>
                     <li>Higher intensity rainfall in shorter periods</li>
                     <li>Extended dry periods between monsoons</li>
@@ -643,9 +816,12 @@ def show():
 
         with col2:
             st.markdown("""
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; height: 100%;">
-                <h4 style="color: #2E7D32;">Adaptation Strategies</h4>
-                <ul>
+            <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                        padding: 1.5rem; border-radius: 12px; height: 100%;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                        border-left: 4px solid #1976D2;">
+                <h4 style="color: #1976D2; margin: 0 0 1rem 0;">🛡️ Adaptation Strategies</h4>
+                <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8; color: #333;">
                     <li>Implementing water management infrastructure</li>
                     <li>Adopting climate-resilient crop varieties</li>
                     <li>Utilizing early warning systems for extreme events</li>

@@ -16,14 +16,54 @@ sys.path.append(project_root)
 from backend.disease_detection import disease_detector
 
 def show():
-    st.header("🔬 Plant Disease Detection")
-
-    # Information banner
+    # Enhanced header with modern design
     st.markdown("""
-    <div style="background-color: #E8F5E9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2E7D32;">
-        <h3 style="color: #2E7D32; margin-top: 0;">AI-Powered Disease Diagnosis</h3>
-        <p>Upload an image of your plant leaves to instantly identify diseases and receive treatment recommendations.
-        Our AI model can recognize over 38 different plant diseases across various crops including tomato, potato, apple, corn, and more.</p>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; 
+                   background: linear-gradient(135deg, #2E7D32, #4CAF50);
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🔬 Plant Disease Detection
+        </h1>
+        <p style="font-size: 1.2rem; color: #666; margin: 0;">
+            AI-Powered Disease Diagnosis & Treatment Recommendations
+        </p>
+        <div style="width: 80px; height: 4px; background: linear-gradient(90deg, #2E7D32, #4CAF50); 
+                    margin: 1rem auto; border-radius: 2px;"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Enhanced information banner
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #E8F5E9 0%, #f0f9ff 100%);
+                padding: 2rem; border-radius: 16px; margin-bottom: 2rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+                border: 1px solid rgba(46, 125, 50, 0.1); position: relative;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
+                    background: linear-gradient(180deg, #2E7D32, #4CAF50); border-radius: 0 4px 4px 0;"></div>
+        <div style="display: flex; align-items: start; gap: 1.5rem;">
+            <div style="font-size: 3rem;">🤖</div>
+            <div>
+                <h3 style="color: #2E7D32; margin: 0 0 1rem 0; font-size: 1.5rem;">Advanced AI Disease Diagnosis</h3>
+                <p style="margin: 0 0 1rem 0; line-height: 1.6; font-size: 1.05rem;">
+                    Upload clear images of your plant leaves to instantly identify diseases and receive comprehensive treatment recommendations.
+                    Our state-of-the-art AI model recognizes over <strong>38 different plant diseases</strong> across multiple crop types.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+                    <div style="background: rgba(46, 125, 50, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #2E7D32;">
+                        🍅 Tomato Diseases
+                    </div>
+                    <div style="background: rgba(46, 125, 50, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #2E7D32;">
+                        🥔 Potato Diseases
+                    </div>
+                    <div style="background: rgba(46, 125, 50, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #2E7D32;">
+                        🍎 Apple Diseases
+                    </div>
+                    <div style="background: rgba(46, 125, 50, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #2E7D32;">
+                        🌽 Corn Diseases
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -34,44 +74,118 @@ def show():
         col1, col2 = st.columns([2, 1])
 
         with col1:
-            st.markdown("### Upload Plant Image")
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="color: #2E7D32; margin-bottom: 0.5rem;">📤 Upload Plant Image</h3>
+                <p style="color: #666; font-size: 0.95rem;">Upload a clear image of your plant for instant AI analysis</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # File uploader for disease detection
+            # Enhanced file uploader
             uploaded_file = st.file_uploader(
                 "Choose a clear image of the affected plant part:",
                 type=["jpg", "jpeg", "png"],
-                help="For best results, upload a well-lit, close-up image of the affected leaves or plant parts"
+                help="Supported formats: JPG, JPEG, PNG | Max size: 10MB",
+                label_visibility="collapsed"
             )
 
-            # Sample images
-            st.markdown("### Or try a sample image")
+            # Show upload instructions
+            if not uploaded_file:
+                st.markdown("""
+                <div style="border: 2px dashed #81C784; border-radius: 12px; padding: 2rem; text-align: center; margin: 1rem 0;
+                            background: linear-gradient(135deg, #F1F8E9 0%, #E8F5E9 100%);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem; color: #2E7D32;">📷</div>
+                    <p style="margin: 0; color: #2E7D32; font-weight: 600;">Drag and drop your plant image here</p>
+                    <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">or click to browse files</p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Display uploaded image with enhanced styling
+                st.markdown("#### 🖼️ Uploaded Image")
+                st.image(uploaded_file, caption="Ready for analysis", use_container_width=True)
+
+            # Enhanced Sample images section
+            st.markdown("---")
+            st.markdown("""
+            <div style="text-align: center; margin: 2rem 0 1rem 0;">
+                <h3 style="color: #2E7D32; margin-bottom: 0.5rem;">🖼️ Try Sample Images</h3>
+                <p style="color: #666; font-size: 0.95rem;">Click on any sample to test our AI detection system</p>
+            </div>
+            """, unsafe_allow_html=True)
+
             sample_col1, sample_col2, sample_col3 = st.columns(3)
 
-            # Sample images - you would need to replace these with actual URLs or local files
+            # Sample images - using relative paths from assets folder (works both locally and when deployed)
+            assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets")
             sample_images = {
-                "Tomato Leaf (Late Blight)": "https://www.goodhousekeeping.com/content/dam/gh/pages/tomato-plant-diseases/Late-Blight-Tomato-GettyImages-698761786.jpg",
-                "Apple Leaf (Scab)": "https://extension.umn.edu/sites/extension.umn.edu/files/Apple-leaf-scab-MBurrows.jpg",
-                "Corn Leaf (Rust)": "https://upload.wikimedia.org/wikipedia/commons/5/58/Common_rust_%28Puccinia_sorghi%29_on_corn.jpg"
+                "Tomato Late Blight": {
+                    "path": os.path.join(assets_dir, "tomato_late_blight.jpeg"),
+                    "emoji": "🍅",
+                    "description": "Tomato Late Blight"
+                },
+                "Apple Scab": {
+                    "path": os.path.join(assets_dir, "apple_scab.jpg"),
+                    "emoji": "🍎",
+                    "description": "Apple Scab Disease"
+                },
+                "Corn Rust": {
+                    "path": os.path.join(assets_dir, "corn_rust.jpg"),
+                    "emoji": "🌽",
+                    "description": "Corn Rust Disease"
+                }
             }
 
-            # Create buttons with sample images
+            # Create enhanced sample buttons
             with sample_col1:
-                if st.button("Tomato - Late Blight"):
-                    st.session_state.sample_img = sample_images["Tomato Leaf (Late Blight)"]
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+                            padding: 1rem; border-radius: 12px; text-align: center;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(46, 125, 50, 0.1);
+                            margin-bottom: 0.5rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🍅</div>
+                    <div style="font-weight: 600; color: #2E7D32; font-size: 0.9rem;">Tomato Late Blight</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("🔍 Analyze Tomato Sample", key="tomato_sample", use_container_width=True):
+                    st.session_state.sample_img = sample_images["Tomato Late Blight"]["path"]
 
             with sample_col2:
-                if st.button("Apple - Scab"):
-                    st.session_state.sample_img = sample_images["Apple Leaf (Scab)"]
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+                            padding: 1rem; border-radius: 12px; text-align: center;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(46, 125, 50, 0.1);
+                            margin-bottom: 0.5rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🍎</div>
+                    <div style="font-weight: 600; color: #2E7D32; font-size: 0.9rem;">Apple Scab</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("🔍 Analyze Apple Sample", key="apple_sample", use_container_width=True):
+                    st.session_state.sample_img = sample_images["Apple Scab"]["path"]
 
             with sample_col3:
-                if st.button("Corn - Rust"):
-                    st.session_state.sample_img = sample_images["Corn Leaf (Rust)"]
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+                            padding: 1rem; border-radius: 12px; text-align: center;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(46, 125, 50, 0.1);
+                            margin-bottom: 0.5rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌽</div>
+                    <div style="font-weight: 600; color: #2E7D32; font-size: 0.9rem;">Corn Rust</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("🔍 Analyze Corn Sample", key="corn_sample", use_container_width=True):
+                    st.session_state.sample_img = sample_images["Corn Rust"]["path"]
 
             # Display selected sample image if applicable
             if "sample_img" in st.session_state and st.session_state.sample_img:
                 try:
-                    response = requests.get(st.session_state.sample_img)
-                    img = Image.open(io.BytesIO(response.content))
+                    # Check if it's a URL or local file path
+                    if st.session_state.sample_img.startswith("http"):
+                        response = requests.get(st.session_state.sample_img)
+                        img = Image.open(io.BytesIO(response.content))
+                    else:
+                        # Load from local file
+                        img = Image.open(st.session_state.sample_img)
+
                     st.image(img, caption="Selected Sample Image", use_container_width=True)
 
                     # Store image in session state as bytes
@@ -87,28 +201,65 @@ def show():
                 detect_button = st.button("🔍 Detect Disease", type="primary", use_container_width=True)
 
         with col2:
-            st.markdown("### Tips for Best Results")
-
             st.markdown("""
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <h4 style="color: #558B2F; margin-top: 0;">📸 Taking Good Photos</h4>
-                <ul style="margin-bottom: 0;">
-                    <li>Ensure good lighting</li>
-                    <li>Get close-ups of symptoms</li>
-                    <li>Include both healthy and affected areas</li>
-                    <li>Capture multiple angles if needed</li>
-                </ul>
+            <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+                        padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid rgba(46, 125, 50, 0.1);">
+                <h4 style="color: #2E7D32; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                    📸 Photo Guidelines
+                </h4>
+                <div style="display: grid; gap: 0.8rem;">
+                    <div style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; 
+                                background: rgba(46, 125, 50, 0.05); border-radius: 8px;">
+                        <div style="color: #2E7D32; font-size: 1.2rem;">💡</div>
+                        <span style="font-size: 0.95rem;">Ensure good natural lighting</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; 
+                                background: rgba(46, 125, 50, 0.05); border-radius: 8px;">
+                        <div style="color: #2E7D32; font-size: 1.2rem;">🔍</div>
+                        <span style="font-size: 0.95rem;">Get close-ups of symptoms</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; 
+                                background: rgba(46, 125, 50, 0.05); border-radius: 8px;">
+                        <div style="color: #2E7D32; font-size: 1.2rem;">🌱</div>
+                        <span style="font-size: 0.95rem;">Include healthy & affected areas</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; 
+                                background: rgba(46, 125, 50, 0.05); border-radius: 8px;">
+                        <div style="color: #2E7D32; font-size: 1.2rem;">📐</div>
+                        <span style="font-size: 0.95rem;">Capture multiple angles</span>
+                    </div>
+                </div>
             </div>
-            
-            <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px;">
-                <h4 style="color: #558B2F; margin-top: 0;">🌿 Common Symptoms</h4>
-                <ul style="margin-bottom: 0;">
-                    <li>Spots or lesions on leaves</li>
-                    <li>Discoloration or yellowing</li>
-                    <li>Wilting or curling</li>
-                    <li>Unusual growth patterns</li>
-                    <li>White powdery or fuzzy coatings</li>
-                </ul>
+
+            <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+                        padding: 1.5rem; border-radius: 16px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid rgba(46, 125, 50, 0.1);">
+                <h4 style="color: #2E7D32; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                    🌿 Disease Symptoms
+                </h4>
+                <div style="display: grid; gap: 0.6rem; font-size: 0.95rem;">
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 8px; height: 8px; background: #2E7D32; border-radius: 50%;"></div>
+                        <span>Spots or lesions on leaves</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 8px; height: 8px; background: #2E7D32; border-radius: 50%;"></div>
+                        <span>Discoloration or yellowing</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 8px; height: 8px; background: #2E7D32; border-radius: 50%;"></div>
+                        <span>Wilting or curling</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 8px; height: 8px; background: #2E7D32; border-radius: 50%;"></div>
+                        <span>Unusual growth patterns</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 8px; height: 8px; background: #2E7D32; border-radius: 50%;"></div>
+                        <span>White powdery coatings</span>
+                    </div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -144,20 +295,29 @@ def show():
                 "Late Blight": {
                     "image_url": "https://www.goodhousekeeping.com/content/dam/gh/pages/tomato-plant-diseases/Late-Blight-Tomato-GettyImages-698761786.jpg",
                     "description": "One of the most devastating tomato diseases, late blight can destroy plants within days. It's caused by the water mold Phytophthora infestans.",
-                    "symptoms": ["Dark brown spots on leaves", "White fuzzy growth on leaf undersides", "Fast spreading lesions", "Brown patches on stems", "Fruit develops greasy gray spots"],
-                    "management": ["Apply copper-based fungicides", "Remove and destroy infected plants", "Improve air circulation", "Avoid overhead watering", "Plant resistant varieties"]
+                    "symptoms": ["Dark brown spots on leaves", "White fuzzy growth on leaf undersides",
+                                 "Fast spreading lesions", "Brown patches on stems",
+                                 "Fruit develops greasy gray spots"],
+                    "management": ["Apply copper-based fungicides", "Remove and destroy infected plants",
+                                   "Improve air circulation", "Avoid overhead watering", "Plant resistant varieties"]
                 },
                 "Early Blight": {
                     "image_url": "https://extension.umn.edu/sites/extension.umn.edu/files/styles/optimized/public/early-blight-tomato-MBurrows.jpg",
                     "description": "A common fungal disease that begins on older leaves and progresses upward. Caused by Alternaria solani.",
-                    "symptoms": ["Dark concentric rings on leaves", "Yellowing around lesions", "Brown spots with target-like appearance", "Lower leaves affected first", "Dark lesions on stems"],
-                    "management": ["Remove infected leaves", "Apply fungicides preventatively", "Mulch around plants", "Ensure adequate spacing", "Rotate crops"]
+                    "symptoms": ["Dark concentric rings on leaves", "Yellowing around lesions",
+                                 "Brown spots with target-like appearance", "Lower leaves affected first",
+                                 "Dark lesions on stems"],
+                    "management": ["Remove infected leaves", "Apply fungicides preventatively", "Mulch around plants",
+                                   "Ensure adequate spacing", "Rotate crops"]
                 },
                 "Leaf Mold": {
                     "image_url": "https://www.almanac.com/sites/default/files/styles/max_1300x1300/public/image_nodes/tomato_leaf-mold_-rutsmetbloemen-ss.jpg",
                     "description": "Common in humid environments, especially in greenhouses. Caused by the fungus Passalora fulva.",
-                    "symptoms": ["Yellow patches on upper leaf surface", "Olive-green to brown velvety mold on leaf undersides", "Leaves curl and wither", "Reduced fruit yield"],
-                    "management": ["Improve air circulation", "Reduce humidity", "Apply fungicides", "Remove infected leaves", "Use resistant varieties"]
+                    "symptoms": ["Yellow patches on upper leaf surface",
+                                 "Olive-green to brown velvety mold on leaf undersides", "Leaves curl and wither",
+                                 "Reduced fruit yield"],
+                    "management": ["Improve air circulation", "Reduce humidity", "Apply fungicides",
+                                   "Remove infected leaves", "Use resistant varieties"]
                 }
             })
         elif selected_plant == "Apple":
@@ -165,10 +325,92 @@ def show():
                 "Apple Scab": {
                     "image_url": "https://extension.umn.edu/sites/extension.umn.edu/files/Apple-leaf-scab-MBurrows.jpg",
                     "description": "Most common apple disease, caused by the fungus Venturia inaequalis.",
-                    "symptoms": ["Olive-green to brown spots on leaves", "Scabby dark lesions on fruit", "Premature leaf drop", "Deformed fruit", "Cracks in fruit skin"],
-                    "management": ["Apply fungicides preventatively", "Remove and destroy fallen leaves", "Prune trees for better air circulation", "Plant resistant varieties", "Apply dormant sprays before bud break"]
+                    "symptoms": ["Olive-green to brown spots on leaves", "Scabby dark lesions on fruit",
+                                 "Premature leaf drop", "Deformed fruit", "Cracks in fruit skin"],
+                    "management": ["Apply fungicides preventatively", "Remove and destroy fallen leaves",
+                                   "Prune trees for better air circulation", "Plant resistant varieties",
+                                   "Apply dormant sprays before bud break"]
                 }
             })
+
+    with tab3:
+        st.markdown("### 📊 Detection Statistics & History")
+
+        # Check if there's detection history
+        if "disease_detection_history" in st.session_state and st.session_state.disease_detection_history:
+            history = st.session_state.disease_detection_history
+
+            # Summary statistics
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric("Total Detections", len(history))
+
+            with col2:
+                healthy_count = sum(1 for item in history if "Healthy" in item["disease"])
+                st.metric("Healthy Plants", healthy_count)
+
+            with col3:
+                diseased_count = len(history) - healthy_count
+                st.metric("Diseased Plants", diseased_count)
+
+            with col4:
+                avg_confidence = sum(item["confidence"] for item in history) / len(history)
+                st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
+
+            st.markdown("---")
+
+            # Recent detections
+            st.markdown("### 🕒 Recent Detection History")
+            for i, detection in enumerate(history[:5]):  # Show last 5 detections
+                status_color = "#4CAF50" if "Healthy" in detection["disease"] else "#F44336"
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+                            padding: 1rem; border-radius: 12px; margin: 0.5rem 0;
+                            border-left: 4px solid {status_color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="color: {status_color};">{detection["disease"]}</strong>
+                            <br><small style="color: #666;">Confidence: {detection["confidence"]:.1f}%</small>
+                        </div>
+                        <div style="text-align: right; color: #666; font-size: 0.9rem;">
+                            {detection["timestamp"]}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Disease frequency chart
+            if len(history) > 1:
+                st.markdown("### 📈 Disease Frequency Analysis")
+                disease_counts = {}
+                for detection in history:
+                    disease = detection["disease"]
+                    disease_counts[disease] = disease_counts.get(disease, 0) + 1
+
+                # Create a simple bar chart representation
+                for disease, count in sorted(disease_counts.items(), key=lambda x: x[1], reverse=True):
+                    percentage = (count / len(history)) * 100
+                    st.markdown(f"""
+                    <div style="margin: 0.5rem 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                            <span style="font-weight: 600;">{disease}</span>
+                            <span>{count} ({percentage:.1f}%)</span>
+                        </div>
+                        <div style="background: #E8F5E9; height: 8px; border-radius: 4px;">
+                            <div style="background: linear-gradient(90deg, #2E7D32, #4CAF50); 
+                                        width: {percentage}%; height: 100%; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.info("No detection history available yet. Start by analyzing some plant images!")
+            st.markdown("""
+            <div style="text-align: center; padding: 2rem; color: #666;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
+                <p>Your detection statistics and history will appear here after you start using the disease scanner.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 def process_disease_detection(image_bytes):
     """

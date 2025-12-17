@@ -1,646 +1,601 @@
 import streamlit as st
-from pages import Crop_Recommendation, Yield_Prediction, Climate_Risk_Alerts, Plant_Disease_Detection, Soil_Analysis
-import base64
-from PIL import Image
 import os
-import time
-from datetime import datetime
 import sys
-import requests
-import json
+from datetime import datetime
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Import page modules
+from pages import Crop_Recommendation, Yield_Prediction, Climate_Risk_Alerts, Plant_Disease_Detection, Soil_Analysis
+
 # Import API services
 from backend.api_services import get_visualcrossing_weather, get_location_from_ip
 
-# Function to add background image and enhanced styling
-def add_custom_styling():
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1932&auto=format&fit=crop");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }}
-        .block-container {{
-            background-color: rgba(255, 255, 255, 0.95); /* Increased opacity for better contrast */
-            padding: 3rem !important;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            color: #333; /* Default text color for better visibility */
-        }}
-        h1, h2, h3 {{
-            color: #2E7D32;
-            font-family: 'Segoe UI', sans-serif;
-        }}
-        p, li, label, span, div {{
-            color: #333; /* Ensuring all text elements are dark by default */
-        }}
-        h1 {{
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #81C784;
-            padding-bottom: 0.5rem;
-        }}
-        h2 {{
-            font-size: 1.8rem;
-        }}
-        .stButton > button {{
-            background-color: #2E7D32;
-            color: white !important; /* Force white text on buttons */
-            border-radius: 8px;
-            padding: 0.5rem 1.2rem;
-            font-weight: bold;
-            border: none;
-            transition: all 0.3s ease;
-        }}
-        .stButton > button:hover {{
-            background-color: #388E3C;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }}
-        /* Improved sidebar styling */
-        [data-testid="stSidebar"] {{
-            background-image: linear-gradient(to bottom, #2E7D32, #1B5E20);
-            padding-top: 1rem;
-        }}
-        [data-testid="stSidebar"] p, 
-        [data-testid="stSidebar"] span, 
-        [data-testid="stSidebar"] div:not(.info-banner), 
-        [data-testid="stSidebar"] label {{
-            color: #f0f2f6 !important;
-            text-shadow: 0px 1px 2px rgba(0,0,0,0.1);
-        }}
-        [data-testid="stSidebar"] .stRadio label {{
-            color: #f0f2f6 !important;
-        }}
-        [data-testid="stSidebar"] .stRadio div[role="radiogroup"] {{
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 10px;
-        }}
-        [data-testid="stSidebar"] hr {{
-            border-color: rgba(255,255,255,0.2);
-            margin: 15px 0;
-        }}
-        [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] > div {{
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }}
-        /* Original sidebar style can be removed as we're using a better selector */
-        .sidebar .sidebar-content {{
-            /* Keeping for backward compatibility but not needed */
-            background-image: none;
-        }}
-        .feature-card {{
-            background-color: #F1F8E9;
-            padding: 20px;
-            border-radius: 15px;
-            height: 220px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-left: 5px solid #558B2F;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }}
-        .feature-card:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-        }}
-        .info-banner {{
-            background-color: #E8F5E9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border-left: 5px solid #2E7D32;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }}
-        .stMetric {{
-            background-color: #F1F8E9;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }}
-        .stMetric label {{
-            color: #333 !important; /* Force dark color on metric labels */
-            font-weight: 500;
-        }}
-        .stMetric .css-1uixxvy {{
-            color: #2E7D32 !important; /* Force green color on metric values */
-        }}
-        .stProgress > div > div > div > div {{
-            background-color: #4CAF50;
-        }}
-        /* Better tab styling */
-        .stTabs [data-baseweb="tab-list"] {{
-            gap: 8px;
-        }}
-        .stTabs [data-baseweb="tab"] {{
-            background-color: #F1F8E9;
-            border-radius: 4px 4px 0px 0px;
-            padding: 10px 16px;
-            color: #2E7D32;
-            font-weight: 500;
-        }}
-        .stTabs [aria-selected="true"] {{
-            background-color: #2E7D32 !important;
-            color: white !important;
-        }}
-        /* Form field improvements */
-        .stNumberInput input, .stTextInput input, .stSelectbox, .stSlider {{
-            border-color: #81C784;
-        }}
-        .stSlider [data-baseweb="slider"] div::after {{
-            background-color: #2E7D32;
-        }}
-        
-        /* Enhanced dropdown styling */
-        .stSelectbox [data-baseweb="select"] div[role="button"] {{
-            background-color: #F1F8E9 !important;
-            border-color: #2E7D32 !important;
-            color: #2E7D32 !important;
-            font-weight: 600 !important;
-            border-width: 2px !important;
-            border-radius: 8px !important;
-            padding: 8px 16px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-            transition: all 0.2s ease !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="button"]:hover {{
-            background-color: #E8F5E9 !important;
-            border-color: #388E3C !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
-            transform: translateY(-1px) !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="listbox"] {{
-            background-color: #FFFFFF !important;
-            border: 2px solid #81C784 !important;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
-            max-height: 300px !important;
-            overflow-y: auto !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="listbox"] div {{
-            color: #333333 !important;
-            background-color: #FFFFFF !important;
-            padding: 8px 16px !important;
-            font-weight: 500 !important;
-            border-bottom: 1px solid rgba(129, 199, 132, 0.2) !important;
-            transition: all 0.1s ease !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="listbox"] div:hover {{
-            background-color: #E8F5E9 !important;
-            color: #2E7D32 !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="listbox"] div[aria-selected="true"] {{
-            background-color: #C8E6C9 !important;
-            color: #2E7D32 !important;
-            font-weight: 600 !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] svg {{
-            color: #2E7D32 !important;
-            fill: #2E7D32 !important;
-        }}
-        
-        /* Additional styling for better dropdown visibility */
-        .stSelectbox [data-baseweb="select"] span {{
-            color: #333333 !important;
-            font-weight: 500 !important;
-        }}
-        
-        .stSelectbox [data-baseweb="popover"] {{
-            background-color: #FFFFFF !important;
-            border: 2px solid #81C784 !important;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="option"] {{
-            color: #333333 !important;
-            background-color: #FFFFFF !important;
-            transition: background-color 0.2s ease !important;
-        }}
-        
-        .stSelectbox [data-baseweb="select"] div[role="option"]:hover {{
-            background-color: #E8F5E9 !important;
-            color: #2E7D32 !important;
-        }}
-        
-        /* Styling for multiselect dropdowns */
-        .stMultiSelect [data-baseweb="tag"] {{
-            background-color: #E8F5E9 !important;
-            color: #2E7D32 !important;
-            border: 1px solid #81C784 !important;
-            border-radius: 16px !important;
-            padding: 2px 8px !important;
-            margin: 2px !important;
-        }}
-        
-        .stMultiSelect [data-baseweb="tag"] span {{
-            color: #2E7D32 !important;
-            font-weight: 500 !important;
-        }}
-        
-        .stMultiSelect [data-baseweb="select"] input {{
-            color: #333333 !important;
-            font-weight: 500 !important;
-        }}
-        
-        /* Also improve sidebar dropdown visibility */
-        [data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] div[role="button"] {{
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-        }}
-        
-        [data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] span {{
-            color: white !important;
-        }}
-        
-        [data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] svg {{
-            color: white !important;
-            fill: white !important;
-        }}
-        
-        /* Make label text more visible */
-        .css-1ekf893 label, .css-16huue1 label {{
-            font-weight: 600 !important;
-            color: #2E7D32 !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# App configuration with favicon
+# Page configuration
 st.set_page_config(
-    page_title="PlantX - Climate Smart Agriculture",
+    page_title="PlantX - AI Agriculture Platform",
     page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Add custom styling
-add_custom_styling()
+# Custom CSS for modern styling matching the enhanced pages
+st.markdown("""
+<style>
+    /* Main container styling with light background for better visibility */
+    .main {
+        padding: 2rem;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 20%, #ffffff 100%) !important;
+    }
 
-# Initialize session state for page navigation and weather data
-if 'page' not in st.session_state:
-    st.session_state.page = "Home"
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%) !important;
+    }
 
-# Initialize location preferences
+    /* Block container for content */
+    .block-container {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        padding: 2rem !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+    }
+
+    /* Force all main content text to be dark and visible */
+    .main h1, .main h2, .main h3, .main h4, .main h5, .main h6 {
+        color: #1a1a1a !important;
+    }
+
+    .main p {
+        color: #2d2d2d !important;
+    }
+
+    .main span {
+        color: #2d2d2d !important;
+    }
+
+    .main div {
+        color: #2d2d2d !important;
+    }
+
+    .main label {
+        color: #1a1a1a !important;
+        font-weight: 600 !important;
+    }
+
+    .main li {
+        color: #2d2d2d !important;
+    }
+
+    /* Input fields should have dark text */
+    .main input {
+        color: #1a1a1a !important;
+        background-color: #ffffff !important;
+    }
+
+    .main textarea {
+        color: #1a1a1a !important;
+        background-color: #ffffff !important;
+    }
+
+    .main select {
+        color: #1a1a1a !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Streamlit specific text elements */
+    .stMarkdown {
+        color: #2d2d2d !important;
+    }
+
+    [data-testid="stMarkdownContainer"] {
+        color: #2d2d2d !important;
+    }
+
+    /* Form labels */
+    .css-10trblm {
+        color: #1a1a1a !important;
+    }
+
+    /* Radio and checkbox labels */
+    .stRadio label, .stCheckbox label {
+        color: #1a1a1a !important;
+    }
+
+    /* Selectbox text */
+    .stSelectbox label {
+        color: #1a1a1a !important;
+    }
+
+    /* Number input labels */
+    .stNumberInput label {
+        color: #1a1a1a !important;
+    }
+
+    /* Text input labels */
+    .stTextInput label {
+        color: #1a1a1a !important;
+    }
+
+    /* Slider labels */
+    .stSlider label {
+        color: #1a1a1a !important;
+    }
+
+    /* Button text should be white */
+    .stButton>button {
+        color: white !important;
+        background-color: #2E7D32 !important;
+    }
+
+    /* Expander text */
+    .streamlit-expanderHeader {
+        color: #1a1a1a !important;
+    }
+
+    /* Tab text */
+    .stTabs [data-baseweb="tab"] {
+        color: #1a1a1a !important;
+    }
+
+    /* Metric labels and values */
+    [data-testid="stMetricLabel"] {
+        color: #1a1a1a !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #2E7D32 !important;
+    }
+
+    /* Sidebar styling with modern gradient */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%);
+    }
+
+    section[data-testid="stSidebar"] > div {
+        padding-top: 2rem;
+    }
+
+    /* Sidebar text styling */
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+
+    section[data-testid="stSidebar"] .stRadio > label {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Sidebar radio button styling */
+    section[data-testid="stSidebar"] [role="radiogroup"] label {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin: 0.3rem 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
+    }
+
+    section[data-testid="stSidebar"] [role="radiogroup"] label[data-checked="true"] {
+        background: rgba(255, 255, 255, 0.25);
+        border-left: 4px solid #8BC34A;
+        font-weight: 700;
+    }
+
+    /* Button styling */
+    .stButton>button {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Metric cards */
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Initialize session state for weather data and location preferences
+if 'weather_data' not in st.session_state:
+    st.session_state.weather_data = None
+if 'location_data' not in st.session_state:
+    st.session_state.location_data = None
 if 'user_location_preference' not in st.session_state:
     st.session_state.user_location_preference = None
-
-# Explicitly initialize detected_location in session state
 if 'detected_location' not in st.session_state:
     st.session_state.detected_location = None
+if 'weather_location' not in st.session_state:
+    st.session_state.weather_location = "New Delhi, India"
 
-# Initialize weather data in session state if not present
-if 'weather_data' not in st.session_state:
-    try:
-        # Default location - can be changed to user's preferred location
-        default_location = "New Delhi, India"
-        # Using the API to get weather data - no need for API key as it's hardcoded in the function
-        user_location = get_location_from_ip()
-        st.session_state.detected_location = user_location
-
-        # Use user's preferred location if set, otherwise use detected location
-        location_to_use = st.session_state.user_location_preference or user_location
-
-        weather_data = get_visualcrossing_weather(location_to_use, None)
-        st.session_state.weather_data = weather_data
-        st.session_state.weather_location = location_to_use
-        st.session_state.weather_error = None
-    except Exception as e:
-        st.session_state.weather_data = {"temperature": 25, "humidity": 65, "rainfall": 0}
-        st.session_state.weather_location = default_location
-        st.session_state.detected_location = default_location
-        st.session_state.weather_error = str(e)
-
-# Sidebar with enhanced logo, weather display and navigation
+# Sidebar Navigation
 with st.sidebar:
-    # --- Add logo image at the top ---
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-    if os.path.exists(logo_path):
-        st.image(logo_path, width=120)  # Adjust width as needed
-
+    # Logo and title
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h1 style="color: white; margin-bottom: 0; font-size: 2rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+    <div style="text-align: center; padding: 1rem 0 2rem 0;">
+        <h1 style="color: white; font-size: 2.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
             🌱 PlantX
         </h1>
-        <p style="color: white; font-style: italic;">Climate Smart Agriculture</p>
-        <hr style="margin: 15px 0; border-color: rgba(255,255,255,0.2);">
+        <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; margin: 0.5rem 0 0 0;">
+            AI-Powered Agriculture Platform
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Display current date and weather
-    today = datetime.now().strftime("%B %d, %Y")
-    weather_info = st.session_state.weather_data
-    weather_location = st.session_state.weather_location
-    weather_error = st.session_state.weather_error
+    # Navigation menu
+    st.markdown("""
+    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 1rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 1px;">
+        Navigation
+    </p>
+    """, unsafe_allow_html=True)
 
-    # Get the detected location
-    detected_location = st.session_state.detected_location
+    page = st.radio(
+        "Select Feature",
+        ["🏠 Home", "🔬 Plant Disease Detection", "🌱 Soil Analysis",
+         "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts"],
+        label_visibility="collapsed"
+    )
+
+    # Divider
+    st.markdown("<hr style='margin: 2rem 0; border-color: rgba(255,255,255,0.2);'>", unsafe_allow_html=True)
+
+    # Location selector and weather display
+    st.markdown("""
+    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 1rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 1px;">
+        Location & Weather
+    </p>
+    """, unsafe_allow_html=True)
+
+    # Get detected location if not already done
+    if st.session_state.detected_location is None:
+        try:
+            detected_loc = get_location_from_ip()
+            if detected_loc and 'location_string' in detected_loc:
+                st.session_state.detected_location = detected_loc['location_string']
+                st.session_state.location_data = detected_loc
+            else:
+                st.session_state.detected_location = "New Delhi, India"
+        except:
+            st.session_state.detected_location = "New Delhi, India"
 
     # Location options (common farming locations in India)
     location_options = [
-        "Select Your Location...",
-        "Bengaluru, India",
         "New Delhi, India",
         "Mumbai, India",
+        "Bengaluru, India",
         "Chennai, India",
         "Kolkata, India",
         "Hyderabad, India",
-        "Pune, India"
+        "Pune, India",
+        "Ahmedabad, India",
+        "Jaipur, India",
+        "Lucknow, India"
     ]
 
     # Add detected location if not already in the list
-    if detected_location not in location_options:
-        location_options.insert(1, detected_location)
+    if st.session_state.detected_location and st.session_state.detected_location not in location_options:
+        location_options.insert(0, st.session_state.detected_location)
 
     # Get current selected location
-    current_location = st.session_state.user_location_preference or "Select Your Location..."
+    current_location = st.session_state.user_location_preference or st.session_state.detected_location or "New Delhi, India"
 
     # Location selector
     selected_location = st.selectbox(
         "📍 Your Location",
         options=location_options,
-        index=location_options.index(current_location) if current_location in location_options else 0
+        index=location_options.index(current_location) if current_location in location_options else 0,
+        help="Select your location to get accurate weather data"
     )
 
-    # Update location if changed
-    if selected_location != "Select Your Location..." and selected_location != st.session_state.user_location_preference:
+    # Update location and fetch weather if changed
+    if selected_location != st.session_state.user_location_preference:
         try:
             st.session_state.user_location_preference = selected_location
-            # Get updated weather data
-            updated_weather = get_visualcrossing_weather(selected_location, None)
-            st.session_state.weather_data = updated_weather
-            st.session_state.weather_location = selected_location
-            st.session_state.weather_error = None
-            # Add a rerun to refresh the page with new weather data
-            st.rerun()
+            # Fetch updated weather data
+            updated_weather = get_visualcrossing_weather(selected_location)
+            if updated_weather:
+                st.session_state.weather_data = updated_weather
+                st.session_state.weather_location = selected_location
+                st.rerun()
         except Exception as e:
-            st.error(f"Error updating weather: {e}")
+            st.warning(f"Could not fetch weather for {selected_location}")
 
-    # Show info about detected vs selected location
-    if weather_error:
-        weather_display = f"🌤️ Weather data unavailable: {weather_error}"
-    else:
+    # Display current date and weather
+    today = datetime.now().strftime("%B %d, %Y")
+
+    # Get weather info
+    weather_info = st.session_state.weather_data
+    weather_location = st.session_state.weather_location
+
+    if weather_info and 'temperature' in weather_info:
         weather_display = f"🌡️ {weather_info['temperature']}°C | 💧 {weather_info['humidity']}% | 🌧️ {weather_info['rainfall']}mm"
+    else:
+        weather_display = "🌤️ Loading weather data..."
 
     st.markdown(f"""
-    <div style="background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-        <p style="color: white; margin-bottom: 5px;">📅 {today}</p>
-        <p style="color: white; font-size: 14px;">{weather_display}</p>
-        <p style="color: white; font-size: 12px;">Location: {weather_location}</p>
+    <div style="background-color: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+        <p style="color: white; margin-bottom: 8px; font-size: 0.9rem;">📅 {today}</p>
+        <p style="color: white; font-size: 0.85rem; margin-bottom: 8px;">{weather_display}</p>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.75rem; margin: 0;">📍 {weather_location}</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Navigation options with icons
-    st.markdown("""
-    <p style="color: white; font-weight: 500; margin-bottom: 10px;">NAVIGATION</p>
-    """, unsafe_allow_html=True)
-
-    # Map emojis to page names for proper selection
-    page_map = {
-        "Home": "🏠 Home",
-        "Crop Recommendation": "🌾 Crop Recommendation",
-        "Yield Prediction": "📊 Yield Prediction",
-        "Climate Risk Alerts": "🌦️ Climate Risk Alerts",
-        "Plant Disease Detection": "🔬 Plant Disease Detection",
-        "Soil Analysis": "🌱 Soil Analysis"
-    }
-
-    # Find the current index based on session state page
-    current_emoji_page = page_map.get(st.session_state.page, "🏠 Home")
-    default_index = ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection", "🌱 Soil Analysis"].index(current_emoji_page) if current_emoji_page in ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection", "🌱 Soil Analysis"] else 0
-
-    selection = st.radio(
-        "Navigation",
-        ["🏠 Home", "🌾 Crop Recommendation", "📊 Yield Prediction", "🌦️ Climate Risk Alerts", "🔬 Plant Disease Detection", "🌱 Soil Analysis"],
-        index=default_index,
-        label_visibility="collapsed"
-    )
-
-    # Progress indicator
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""<p style="color: white; font-size: 14px;">AI System Status</p>""", unsafe_allow_html=True)
-    st.progress(0.98, "Models ready (98%)")
-
-    # User profile section
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style="background-color: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-top: 20px;">
-        <p style="color: white; font-size: 14px; margin-bottom: 5px;">👨‍🌾 Farmer's Portal</p>
-        <p style="color: white; font-size: 12px;">Connected to local weather stations</p>
+    # Quick Info
+    st.markdown(f"""
+    <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+        <p style="font-size: 0.85rem; margin: 0;">
+            <strong>📅 Date:</strong> {datetime.now().strftime('%B %d, %Y')}
+        </p>
+        <p style="font-size: 0.85rem; margin: 0.5rem 0 0 0;">
+            <strong>🌍 Platform:</strong> PlantX AI
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Footer
+# Main content area
+if page == "🏠 Home":
+    # Home Page with modern design
     st.markdown("""
-    <div style="position: absolute; bottom: 20px; text-align: center; width: 85%;">
-        <p style="color: white; font-size: 12px;">© 2025 PlantX | Smart Agriculture</p>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 0.5rem; 
+                   color: #2E7D32 !important;">
+            Welcome to PlantX
+        </h1>
+        <p style="font-size: 1.3rem; color: #666; margin: 0;">
+            Your Complete AI-Powered Agriculture Solution
+        </p>
+        <div style="width: 100px; height: 4px; background: linear-gradient(90deg, #2E7D32, #8BC34A); 
+                    margin: 1.5rem auto; border-radius: 2px;"></div>
     </div>
     """, unsafe_allow_html=True)
 
-# Process the selection - strip the emoji from the selection
-clean_selection = selection
-if selection.startswith('🏠'):
-    clean_selection = "Home"
-elif selection.startswith('🌾'):
-    clean_selection = "Crop Recommendation"
-elif selection.startswith('📊'):
-    clean_selection = "Yield Prediction"
-elif selection.startswith('🌦️'):
-    clean_selection = "Climate Risk Alerts"
-elif selection.startswith('🔬'):
-    clean_selection = "Plant Disease Detection"
-elif selection.startswith('🌱'):
-    clean_selection = "Soil Analysis"
-
-# Update the session state page
-st.session_state.page = clean_selection
-
-# Display selected page
-if clean_selection == "Home":
-    # Create a loading animation for 0.5 seconds
-    with st.spinner('Loading PlantX Dashboard...'):
-        time.sleep(0.5)
-
-    # Home page content
-    st.title("🌱 PlantX - Climate Smart Agriculture Platform")
-
-    # Welcome banner with subtle animation
+    # Hero section
     st.markdown("""
-    <div class="info-banner">
-        <h2 style="color: #2E7D32;">Welcome to PlantX AI</h2>
-        <p>Your AI-powered assistant for climate-smart agriculture. Make informed decisions, optimize yields, and adapt to changing climate conditions.</p>
+    <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+                padding: 2.5rem; border-radius: 16px; margin-bottom: 2rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+                border: 1px solid rgba(46, 125, 50, 0.1); text-align: center;">
+        <h2 style="color: #2E7D32; margin: 0 0 1rem 0; font-size: 2rem;">
+            🚀 Empowering Farmers with AI Technology
+        </h2>
+        <p style="color: #333; line-height: 1.8; font-size: 1.1rem; max-width: 800px; margin: 0 auto;">
+            PlantX combines cutting-edge artificial intelligence with agricultural expertise to help you make 
+            <strong>data-driven decisions</strong> for optimal crop management, disease prevention, and yield maximization.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Quick stats
-    st.markdown("### 📈 Farm Intelligence Dashboard")
-    metrics_col1, metrics_col2, metrics_col3, metrics_col4 = st.columns(4)
+    # Features Grid
+    st.markdown("""
+    <h2 style="color: #2E7D32; text-align: center; margin: 3rem 0 2rem 0; font-size: 2rem;">
+        🌟 Key Features
+    </h2>
+    """, unsafe_allow_html=True)
 
-    with metrics_col1:
-        st.metric(label="Crops Analyzed", value="15.2K+", delta="↑ 12%")
-    with metrics_col2:
-        st.metric(label="Weather Patterns", value="23+", delta="3 new")
-    with metrics_col3:
-        st.metric(label="Yield Accuracy", value="92%", delta="↑ 3.5%")
-    with metrics_col4:
-        st.metric(label="Risk Predictions", value="98%", delta="↑ 1.2%")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Feature cards with enhanced styling
-    st.markdown("### 🔍 Explore PlantX Services")
+    # Feature cards in columns
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("""
-        <div class="feature-card">
-            <h3 style="color: #558B2F;">🌾 Crop Recommendation</h3>
-            <p>Get AI-powered recommendations for the most suitable crops based on your soil characteristics and local climate conditions.</p>
-            <br>
+        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    padding: 2rem; border-radius: 12px; height: 100%;
+                    border-left: 4px solid #1976D2;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                    transition: transform 0.3s ease;">
+            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🔬</div>
+            <h3 style="color: #1976D2; text-align: center; margin-bottom: 1rem;">Disease Detection</h3>
+            <p style="color: #333; line-height: 1.6; text-align: center;">
+                AI-powered identification of plant diseases with treatment recommendations
+            </p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Explore Crop Recommendation →", key="crop_rec_btn"):
-            st.session_state.page = "Crop Recommendation"
-            st.rerun()
 
     with col2:
         st.markdown("""
-        <div class="feature-card">
-            <h3 style="color: #558B2F;">📊 Yield Prediction</h3>
-            <p>Forecast your harvest potential with our advanced machine learning models that analyze environmental factors and agricultural practices.</p>
+        <div style="background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%); 
+                    padding: 2rem; border-radius: 12px; height: 100%;
+                    border-left: 4px solid #8B4513;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🌱</div>
+            <h3 style="color: #8B4513; text-align: center; margin-bottom: 1rem;">Soil Analysis</h3>
+            <p style="color: #333; line-height: 1.6; text-align: center;">
+                Instant soil classification with tailored crop and management suggestions
+            </p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Explore Yield Prediction →", key="yield_pred_btn"):
-            st.session_state.page = "Yield Prediction"
-            st.rerun()
 
     with col3:
         st.markdown("""
-        <div class="feature-card">
-            <h3 style="color: #558B2F;">🌦️ Climate Risk Alerts</h3>
-            <p>Stay one step ahead of weather events with early warning system that helps you protect crops and optimize farming operations.</p>
+        <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%); 
+                    padding: 2rem; border-radius: 12px; height: 100%;
+                    border-left: 4px solid #558B2F;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🌾</div>
+            <h3 style="color: #558B2F; text-align: center; margin-bottom: 1rem;">Crop Recommendation</h3>
+            <p style="color: #333; line-height: 1.6; text-align: center;">
+                Smart crop selection based on soil nutrients and climate conditions
+            </p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Explore Climate Risk Alerts →", key="climate_risk_btn"):
-            st.session_state.page = "Climate Risk Alerts"
-            st.rerun()
 
-    # Second row of feature cards for Plant Disease Detection and Soil Analysis
     st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
+
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("""
-        <div class="feature-card">
-            <h3 style="color: #558B2F;">🔬 Plant Disease Detection</h3>
-            <p>Identify plant diseases instantly by uploading photos of affected plants and receive treatment recommendations to protect your crops.</p>
+        <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); 
+                    padding: 2rem; border-radius: 12px; height: 100%;
+                    border-left: 4px solid #F57C00;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">📊</div>
+            <h3 style="color: #F57C00; text-align: center; margin-bottom: 1rem;">Yield Prediction</h3>
+            <p style="color: #333; line-height: 1.6; text-align: center;">
+                Accurate harvest forecasting for better production planning
+            </p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Explore Plant Disease Detection →", key="disease_detection_btn"):
-            st.session_state.page = "Plant Disease Detection"
-            st.rerun()
 
     with col2:
         st.markdown("""
-        <div class="feature-card">
-            <h3 style="color: #558B2F;">🌱 Soil Analysis</h3>
-            <p>Analyze your soil type from images and get tailored recommendations for soil management and suitable crop selection.</p>
+        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    padding: 2rem; border-radius: 12px; height: 100%;
+                    border-left: 4px solid #1976D2;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🌦️</div>
+            <h3 style="color: #1976D2; text-align: center; margin-bottom: 1rem;">Climate Risk Alerts</h3>
+            <p style="color: #333; line-height: 1.6; text-align: center;">
+                Early warning system for weather-related crop risks
+            </p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Explore Soil Analysis →", key="soil_analysis_btn"):
-            st.session_state.page = "Soil Analysis"
-            st.rerun()
 
-    # Testimonial section
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 💬 Farmer Success Stories")
-
-    testimonial_col1, testimonial_col2 = st.columns(2)
-
-    with testimonial_col1:
+    with col3:
         st.markdown("""
-        <div style="background-color: #F9FBE7; padding: 20px; border-radius: 10px; position: relative; margin-top: 10px;">
-            <p style="font-style: italic;">"PlantX helped me increase my crop yield by 27% in just one season by recommending the perfect crop rotation strategy for my soil conditions."</p>
-            <p style="text-align: right; margin-bottom: 0; font-weight: bold;">- James Wilson</p>
-            <p style="text-align: right; margin-top: 0; color: #558B2F; font-size: 14px;">Corn Farmer, Iowa</p>
+        <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); 
+                    padding: 2rem; border-radius: 12px; height: 100%;
+                    border-left: 4px solid #2E7D32;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🤖</div>
+            <h3 style="color: #2E7D32; text-align: center; margin-bottom: 1rem;">AI Technology</h3>
+            <p style="color: #333; line-height: 1.6; text-align: center;">
+                Machine learning models trained on extensive agricultural data
+            </p>
         </div>
         """, unsafe_allow_html=True)
 
-    with testimonial_col2:
-        st.markdown("""
-        <div style="background-color: #F9FBE7; padding: 20px; border-radius: 10px; position: relative; margin-top: 10px;">
-            <p style="font-style: italic;">"The climate risk alerts warned me about an upcoming frost two days before it hit, giving me enough time to protect my vineyard. This saved my entire harvest!"</p>
-            <p style="text-align: right; margin-bottom: 0; font-weight: bold;">- Maria Rodriguez</p>
-            <p style="text-align: right; margin-top: 0; color: #558B2F; font-size: 14px;">Vineyard Owner, California</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # About section with enhanced design
-    st.markdown("<br>", unsafe_allow_html=True)
+    # Quick Start Guide
+    st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
-    <div style="background-color: #E8F5E9; padding: 25px; border-radius: 15px; margin-top: 30px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);">
-        <h2 style="color: #2E7D32;">About PlantX Technology</h2>
-        <p>PlantX combines cutting-edge machine learning algorithms with decades of agricultural science to provide actionable insights for sustainable farming. Our platform analyzes soil composition, climate patterns, historical yield data, and real-time weather information to help you:</p>
-        <ul>
-            <li><strong>Optimize crop selection</strong> based on your specific field conditions</li>
-            <li><strong>Predict potential yields</strong> with high accuracy before planting</li>
-            <li><strong>Anticipate climate risks</strong> that could affect your crops</li>
-            <li><strong>Reduce environmental impact</strong> while maximizing productivity</li>
-        </ul>
-        <p>Join thousands of farmers who are already using PlantX to transform their agricultural practices and adapt to our changing climate.</p>
+    <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+                padding: 2rem; border-radius: 12px; margin: 2rem 0;
+                border-left: 4px solid #FF9800;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <h3 style="color: #E65100; margin-top: 0;">🚀 Getting Started</h3>
+        <div style="color: #333; line-height: 2;">
+            <p style="margin: 0.5rem 0;"><strong>1.</strong> Select a feature from the sidebar navigation</p>
+            <p style="margin: 0.5rem 0;"><strong>2.</strong> Upload images or enter your data</p>
+            <p style="margin: 0.5rem 0;"><strong>3.</strong> Get instant AI-powered insights and recommendations</p>
+            <p style="margin: 0.5rem 0;"><strong>4.</strong> Take action based on personalized guidance</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Call to action
+    # Stats section
     st.markdown("<br>", unsafe_allow_html=True)
-    cta_col1, cta_col2 = st.columns([2, 1])
+    col1, col2, col3, col4 = st.columns(4)
 
-    with cta_col2:
+    with col1:
         st.markdown("""
-        <div style="background-color: #2E7D32; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-            <h3 style="color: white; margin-top: 0;">Ready to get started?</h3>
-            <p style="color: white;">Explore our tools and see the difference PlantX can make for your farm.</p>
+        <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+                    padding: 1.5rem; border-radius: 10px; text-align: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h2 style="color: #2E7D32; margin: 0; font-size: 2.5rem; font-weight: 700;">38+</h2>
+            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Disease Types</p>
         </div>
         """, unsafe_allow_html=True)
 
-    with cta_col1:
-        st.image("https://images.unsplash.com/photo-1574943320219-89283140739e?q=80&w=1932&auto=format&fit=crop",
-                 caption="AI-driven farming - The future of agriculture")
+    with col2:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
+                    padding: 1.5rem; border-radius: 10px; text-align: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h2 style="color: #8B4513; margin: 0; font-size: 2.5rem; font-weight: 700;">10</h2>
+            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Soil Types</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-elif clean_selection == "Crop Recommendation":
-    with st.spinner('Loading Crop Recommendation System...'):
-        time.sleep(0.5)
-    Crop_Recommendation.show()
-elif clean_selection == "Yield Prediction":
-    with st.spinner('Loading Yield Prediction System...'):
-        time.sleep(0.5)
-    Yield_Prediction.show()
-elif clean_selection == "Climate Risk Alerts":
-    with st.spinner('Loading Climate Risk Alert System...'):
-        time.sleep(0.5)
-    Climate_Risk_Alerts.show()
-elif clean_selection == "Plant Disease Detection":
-    with st.spinner('Loading Plant Disease Detection System...'):
-        time.sleep(0.5)
+    with col3:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%);
+                    padding: 1.5rem; border-radius: 10px; text-align: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h2 style="color: #558B2F; margin: 0; font-size: 2.5rem; font-weight: 700;">55+</h2>
+            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Crop Types</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+                    padding: 1.5rem; border-radius: 10px; text-align: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h2 style="color: #1976D2; margin: 0; font-size: 2.5rem; font-weight: 700;">30+</h2>
+            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">Indian States</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+elif page == "🔬 Plant Disease Detection":
     Plant_Disease_Detection.show()
-elif clean_selection == "Soil Analysis":
-    with st.spinner('Loading Soil Analysis System...'):
-        time.sleep(0.5)
+
+elif page == "🌱 Soil Analysis":
     Soil_Analysis.show()
+
+elif page == "🌾 Crop Recommendation":
+    Crop_Recommendation.show()
+
+elif page == "📊 Yield Prediction":
+    Yield_Prediction.show()
+
+elif page == "🌦️ Climate Risk Alerts":
+    # Use the selected location from dropdown
+    location_to_use = st.session_state.user_location_preference or st.session_state.detected_location or "New Delhi, India"
+
+    # Fetch weather data if not already available or if location changed
+    if st.session_state.weather_data is None or st.session_state.weather_location != location_to_use:
+        try:
+            print(f"[DEBUG] Fetching weather for: {location_to_use}")
+            weather_data = get_visualcrossing_weather(location_to_use)
+            if weather_data:
+                st.session_state.weather_data = weather_data
+                st.session_state.weather_location = location_to_use
+                print(f"[DEBUG] Weather data fetched successfully!")
+            else:
+                print(f"[DEBUG] Failed to fetch weather data")
+                # Try fallback if it fails
+                weather_data = get_visualcrossing_weather("New Delhi, India")
+                if weather_data:
+                    st.session_state.weather_data = weather_data
+                    st.session_state.weather_location = "New Delhi, India"
+        except Exception as e:
+            print(f"[DEBUG] Error fetching weather: {str(e)}")
+            # Try fallback location
+            try:
+                weather_data = get_visualcrossing_weather("New Delhi, India")
+                if weather_data:
+                    st.session_state.weather_data = weather_data
+                    st.session_state.weather_location = "New Delhi, India"
+            except:
+                pass  # Silently fail, page will handle missing data
+
+    Climate_Risk_Alerts.show()
+
+# Footer
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("""
+<div style="text-align: center; padding: 2rem 0 1rem 0; border-top: 2px solid #E0E0E0; margin-top: 3rem;">
+    <p style="color: #666; font-size: 0.9rem; margin: 0;">
+        © 2025 PlantX - AI-Powered Agriculture Platform
+    </p>
+    <p style="color: #999; font-size: 0.85rem; margin: 0.5rem 0 0 0;">
+        Empowering farmers with intelligent technology
+    </p>
+</div>
+""", unsafe_allow_html=True)
+

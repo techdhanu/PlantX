@@ -8,10 +8,98 @@ import pandas as pd
 from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
 import joblib
 
+
 # Function to show page content
 def show():
-    # Title
-    st.title("🌾 Crop Yield Prediction - PlantX")
+    # Add custom CSS to make dropdown text visible
+    st.markdown("""
+        <style>
+        /* Style for selectbox dropdown */
+        .stSelectbox > div > div {
+            color: white !important;
+        }
+
+        /* Style for selectbox options */
+        .stSelectbox [data-baseweb="select"] > div {
+            color: white !important;
+        }
+
+        /* Style for dropdown menu items */
+        [data-baseweb="menu"] {
+            background-color: #262730 !important;
+        }
+
+        [data-baseweb="menu"] li {
+            color: white !important;
+        }
+
+        [data-baseweb="menu"] li:hover {
+            background-color: #4a4a5e !important;
+        }
+
+        /* Style for selected option in dropdown */
+        .stSelectbox div[data-baseweb="select"] span {
+            color: white !important;
+        }
+
+        /* Input field text color */
+        .stSelectbox input {
+            color: white !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Enhanced header with modern design
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; 
+                   background: linear-gradient(135deg, #F57C00, #FFA726);
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🌾 Crop Yield Prediction
+        </h1>
+        <p style="font-size: 1.2rem; color: #666; margin: 0;">
+            AI-Powered Harvest Forecasting & Production Planning
+        </p>
+        <div style="width: 80px; height: 4px; background: linear-gradient(90deg, #F57C00, #FFA726); 
+                    margin: 1rem auto; border-radius: 2px;"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Enhanced information banner
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+                padding: 2rem; border-radius: 16px; margin-bottom: 2rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+                border: 1px solid rgba(245, 124, 0, 0.1); position: relative;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
+                    background: linear-gradient(180deg, #F57C00, #FFA726); border-radius: 0 4px 4px 0;"></div>
+        <div style="display: flex; align-items: start; gap: 1.5rem;">
+            <div style="font-size: 3rem;">🤖</div>
+            <div>
+                <h3 style="color: #F57C00; margin: 0 0 1rem 0; font-size: 1.5rem;">Advanced Yield Prediction System</h3>
+                <p style="margin: 0 0 1rem 0; line-height: 1.6; font-size: 1.05rem;">
+                    Leverage <strong>machine learning algorithms</strong> to predict crop yields based on environmental conditions, 
+                    soil composition, and regional climate data. Make <strong>data-driven decisions</strong> for optimal harvest planning 
+                    and resource allocation.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+                    <div style="background: rgba(245, 124, 0, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #F57C00;">
+                        📊 Production Forecasting
+                    </div>
+                    <div style="background: rgba(245, 124, 0, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #F57C00;">
+                        🌍 Regional Analysis
+                    </div>
+                    <div style="background: rgba(245, 124, 0, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #F57C00;">
+                        🌡️ Climate Impact
+                    </div>
+                    <div style="background: rgba(245, 124, 0, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #F57C00;">
+                        💧 Resource Planning
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Define paths using relative path for better portability
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -62,12 +150,13 @@ def show():
     try:
         with open(env_data_path, 'r') as f:
             environmental_data = json.load(f)
-            soil_data = {item["state_index"]: {"soil_pH": item["soil_pH"]/10, "organic_carbon": item["organic_carbon"]}
-                         for item in environmental_data["soil_data"]}
+            soil_data = {
+                item["state_index"]: {"soil_pH": item["soil_pH"] / 10, "organic_carbon": item["organic_carbon"]}
+                for item in environmental_data["soil_data"]}
             climate_data = {item["index"]: {"temperature": item["temperature"],
-                                          "humidity": item["humidity"],
-                                          "rainfall": item["rainfall"]}
-                         for item in environmental_data["climate_data"]}
+                                            "humidity": item["humidity"],
+                                            "rainfall": item["rainfall"]}
+                            for item in environmental_data["climate_data"]}
         st.success("Environmental data loaded successfully")
     except Exception as e:
         st.error(f"Failed to load environmental data: {str(e)}")
@@ -177,9 +266,17 @@ def show():
     # Create reverse mapping for displaying state names
     state_names_by_index = {v: k for k, v in state_map.items()}
 
-    # Dropdown inputs
+    # Initialize crop and state lists for dropdowns
     crop_names = list(crop_map.keys())
     state_names = list(state_map.keys())
+
+    # Dropdown inputs with enhanced header
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h3 style="color: #F57C00; margin-bottom: 0.5rem;">📊 Crop & Location Selection</h3>
+        <p style="color: #666; font-size: 0.95rem;">Choose your crop and location for accurate predictions</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -211,11 +308,26 @@ def show():
         default_soil_pH = state_soil['soil_pH']
         default_organic_carbon = state_soil['organic_carbon']
 
-    # Show the source of environmental data
-    st.info(f"Environmental data for {selected_state} has been automatically loaded.")
+    # Show the source of environmental data with enhanced styling
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                padding: 15px; border-radius: 10px; margin: 20px 0;
+                border-left: 4px solid #1976D2;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <p style="margin: 0; color: #1976D2; font-weight: 600;">
+            ℹ️ Environmental data for <strong>{selected_state}</strong> has been automatically loaded based on regional climate patterns.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Input fields with auto-populated values
-    st.subheader("Farm Details")
+    # Input fields with auto-populated values and enhanced header
+    st.markdown("""
+    <div style="background: linear-gradient(90deg, #F57C00, #FFA726); 
+                padding: 8px 15px; border-radius: 8px; margin: 20px 0 10px 0;">
+        <h4 style="color: white; margin: 0; font-size: 1rem;">🚜 Farm Details</h4>
+    </div>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
     with col1:
         area = st.slider("Area (hectares)", min_value=0.1, max_value=50.0, value=5.0, step=0.1)
@@ -226,12 +338,19 @@ def show():
         humidity = st.slider("Humidity (%)", min_value=10.0, max_value=100.0, value=default_humidity, step=1.0)
         rainfall = st.slider("Rainfall (mm)", min_value=10.0, max_value=3000.0, value=default_rainfall, step=10.0)
 
-    st.subheader("Soil Characteristics")
+    st.markdown("""
+    <div style="background: linear-gradient(90deg, #F57C00, #FFA726); 
+                padding: 8px 15px; border-radius: 8px; margin: 20px 0 10px 0;">
+        <h4 style="color: white; margin: 0; font-size: 1rem;">🌍 Soil Characteristics</h4>
+    </div>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
     with col1:
         soil_pH = st.slider("Soil pH", min_value=4.0, max_value=10.0, value=default_soil_pH, step=0.1)
     with col2:
-        organic_carbon = st.slider("Organic Carbon (%)", min_value=0.1, max_value=10.0, value=default_organic_carbon, step=0.1)
+        organic_carbon = st.slider("Organic Carbon (%)", min_value=0.1, max_value=10.0, value=default_organic_carbon,
+                                   step=0.1)
 
     # Encode categorical inputs
     encoded_crop = crop_map[selected_crop]
@@ -240,13 +359,14 @@ def show():
     # Prepare input in the correct order (9 features)
     # Create a dataframe with named features to avoid scikit-learn warnings
     feature_names = ['crop_id', 'state_id', 'area', 'pesticide',
-                    'temperature', 'humidity', 'rainfall', 'soil_pH', 'organic_carbon']
+                     'temperature', 'humidity', 'rainfall', 'soil_pH', 'organic_carbon']
     input_df = pd.DataFrame([[encoded_crop, encoded_state, area, pesticide,
                               temperature, humidity, rainfall, soil_pH, organic_carbon]],
-                              columns=feature_names)
+                            columns=feature_names)
 
-    # Predict yield
-    if st.button("🚜 Predict Yield"):
+    # Predict yield with enhanced button styling
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("🚜 Predict Yield", type="primary", use_container_width=True):
         try:
             # Get base yield for the crop
             base_yield = crop_base_yields.get(selected_crop, default_base_yield)
@@ -311,53 +431,107 @@ def show():
                 if selected_state in ["Kerala", "Karnataka", "Tamil Nadu"]:
                     prediction_value *= 1.2  # 20% boost for suitable regions
 
-            # Display the prediction
-            st.success(f"🌾 Estimated Yield: {prediction_value:.2f} tons/ha")
+            # Add separator
+            st.markdown(
+                "<hr style='margin: 30px 0; border: none; height: 1px; background: linear-gradient(90deg, transparent, #F57C00, transparent);'>",
+                unsafe_allow_html=True)
 
+            # Display the enhanced prediction
             # Get appropriate yield ranges for this crop
             yield_range = crop_yield_ranges.get(selected_crop, default_yield_range)
 
             # Determine yield level based on crop-specific thresholds
             if prediction_value >= yield_range['high']:
                 yield_level = "high"
+                level_color = "#4CAF50"
+                level_emoji = "🌟"
+                level_text = "Excellent"
             elif prediction_value >= yield_range['moderate']:
                 yield_level = "moderate"
+                level_color = "#FF9800"
+                level_emoji = "📊"
+                level_text = "Good"
             else:
                 yield_level = "low"
+                level_color = "#F44336"
+                level_emoji = "📉"
+                level_text = "Needs Improvement"
 
-            st.info(f"This is considered a {yield_level} yield for {selected_crop} in {selected_state}.")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #F57C00 0%, #FFA726 100%); 
+                        padding: 30px; border-radius: 12px; text-align: center; margin: 20px 0;
+                        box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <h2 style="color: white; margin: 0; font-size: 1.5rem;">📊 Predicted Yield</h2>
+                <h1 style="color: white; margin: 15px 0; font-size: 48px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                    {prediction_value:.2f} tons/ha
+                </h1>
+                <p style="color: white; font-size: 1.1rem; margin: 0;">
+                    For {selected_crop} in {selected_state}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # Show detailed factors affecting the yield
-            st.subheader("Factors Affecting Yield")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, {level_color}20 0%, {level_color}10 100%); 
+                        padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0;
+                        border-left: 4px solid {level_color};
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                <p style="margin: 0; font-size: 1.2rem; color: {level_color}; font-weight: 600;">
+                    {level_emoji} Yield Level: <strong>{level_text}</strong>
+                </p>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 0.95rem;">
+                    This is considered a {yield_level} yield for {selected_crop} in {selected_state}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Show detailed factors affecting the yield with enhanced header
+            st.markdown("""
+            <h3 style="color: #F57C00; margin: 30px 0 15px 0;">📊 Factors Affecting Yield</h3>
+            """, unsafe_allow_html=True)
+
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Temperature Impact", f"{temp_factor*100:.0f}%",
-                         f"{'+' if temperature > temp_opt else '-'}{abs(temperature - temp_opt):.1f}°C from optimal")
+                st.metric("Temperature Impact", f"{temp_factor * 100:.0f}%",
+                          f"{'+' if temperature > temp_opt else '-'}{abs(temperature - temp_opt):.1f}°C from optimal")
             with col2:
-                st.metric("Rainfall Impact", f"{rainfall_factor*100:.0f}%",
-                         f"{'+' if rainfall > 1000 else '-'}{abs(rainfall - 1000):.0f}mm from baseline")
+                st.metric("Rainfall Impact", f"{rainfall_factor * 100:.0f}%",
+                          f"{'+' if rainfall > 1000 else '-'}{abs(rainfall - 1000):.0f}mm from baseline")
             with col3:
-                st.metric("Soil pH Impact", f"{ph_factor*100:.0f}%",
-                         f"{'+' if abs(soil_pH - ph_opt) < 0.5 else '-'}{abs(soil_pH - ph_opt):.1f} from optimal")
+                st.metric("Soil pH Impact", f"{ph_factor * 100:.0f}%",
+                          f"{'+' if abs(soil_pH - ph_opt) < 0.5 else '-'}{abs(soil_pH - ph_opt):.1f} from optimal")
 
             # Show additional factors
             col1, col2 = st.columns(2)
             with col1:
-                st.metric("Regional Suitability", f"{state_bonus*100:.0f}%",
-                        f"{'+'if state_bonus > 1 else ''}{(state_bonus-1)*100:.0f}% bonus" if state_bonus > 1 else "Standard")
+                st.metric("Regional Suitability", f"{state_bonus * 100:.0f}%",
+                          f"{'+' if state_bonus > 1 else ''}{(state_bonus - 1) * 100:.0f}% bonus" if state_bonus > 1 else "Standard")
             with col2:
-                st.metric("Organic Carbon", f"{oc_factor*100:.0f}%",
-                        f"+{(oc_factor-1)*100:.0f}%" if oc_factor > 1 else "Standard")
+                st.metric("Organic Carbon", f"{oc_factor * 100:.0f}%",
+                          f"+{(oc_factor - 1) * 100:.0f}%" if oc_factor > 1 else "Standard")
 
-            # Show recommendation based on prediction
-            st.subheader("Recommendations")
-            recommendations = get_recommendations(selected_crop, selected_state, yield_level, temperature, rainfall, soil_pH)
-            for rec in recommendations:
-                st.write(f"• {rec}")
+            # Show recommendation based on prediction with enhanced styling
+            st.markdown("""
+            <h3 style="color: #F57C00; margin: 30px 0 15px 0;">💡 Recommendations</h3>
+            """, unsafe_allow_html=True)
+
+            recommendations = get_recommendations(selected_crop, selected_state, yield_level, temperature, rainfall,
+                                                  soil_pH)
+
+            for i, rec in enumerate(recommendations):
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); 
+                            padding: 12px 15px; border-radius: 8px; margin: 8px 0;
+                            border-left: 4px solid #F57C00;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                    <p style="margin: 0; color: #333;">• {rec}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"Error during prediction: {str(e)}")
             st.info("Please make sure all input values are appropriate for yield prediction.")
+
 
 def create_backup_model():
     """Create a simple backup model for demonstration purposes"""
@@ -372,13 +546,13 @@ def create_backup_model():
 
     # Generate synthetic yields based on features - fixed multiline syntax
     y = (2.0
-        + X[:, 2] * 0.2    # area
-        + X[:, 3] * 0.1    # pesticide
-        + np.sin((X[:, 4] - 0.5) * 3) * 2    # temperature effect (optimal in middle)
-        + X[:, 5] * 2      # humidity
-        + X[:, 6] * 3      # rainfall
-        + np.sin((X[:, 7] - 0.5) * 6) * 1    # pH effect (optimal in middle)
-        + X[:, 8] * 1)     # organic carbon
+         + X[:, 2] * 0.2  # area
+         + X[:, 3] * 0.1  # pesticide
+         + np.sin((X[:, 4] - 0.5) * 3) * 2  # temperature effect (optimal in middle)
+         + X[:, 5] * 2  # humidity
+         + X[:, 6] * 3  # rainfall
+         + np.sin((X[:, 7] - 0.5) * 6) * 1  # pH effect (optimal in middle)
+         + X[:, 8] * 1)  # organic carbon
 
     # Add some crop-specific effects (e.g., sugarcane high yield, groundnut low yield)
     for i in range(len(y)):
@@ -395,6 +569,7 @@ def create_backup_model():
     # Fit the model
     model.fit(X, y)
     return model
+
 
 def get_recommendations(crop, state, yield_level, temperature, rainfall, soil_pH):
     """Generate recommendations based on crop, state and yield level."""
@@ -423,9 +598,11 @@ def get_recommendations(crop, state, yield_level, temperature, rainfall, soil_pH
 
     # Add specific recommendations based on environmental factors
     if temperature < 15:
-        recommendations.append("The temperature is too low for optimal growth. Consider greenhouse cultivation or wait for warmer weather.")
+        recommendations.append(
+            "The temperature is too low for optimal growth. Consider greenhouse cultivation or wait for warmer weather.")
     elif temperature > 35:
-        recommendations.append("The temperature is high. Ensure adequate irrigation and consider shade solutions during peak heat.")
+        recommendations.append(
+            "The temperature is high. Ensure adequate irrigation and consider shade solutions during peak heat.")
 
     if rainfall < 300:
         recommendations.append("Rainfall is inadequate. Implement irrigation systems to supplement water needs.")
@@ -433,17 +610,22 @@ def get_recommendations(crop, state, yield_level, temperature, rainfall, soil_pH
         recommendations.append("Excessive rainfall may lead to waterlogging. Ensure proper drainage in your fields.")
 
     if soil_pH < 5.5:
-        recommendations.append("Soil is acidic. Consider applying agricultural lime to raise pH for better nutrient availability.")
+        recommendations.append(
+            "Soil is acidic. Consider applying agricultural lime to raise pH for better nutrient availability.")
     elif soil_pH > 7.5:
-        recommendations.append("Soil is alkaline. Consider adding organic matter or sulfur amendments to lower pH gradually.")
+        recommendations.append(
+            "Soil is alkaline. Consider adding organic matter or sulfur amendments to lower pH gradually.")
 
     # Add crop-specific recommendations
     if crop == "Cardamom":
-        recommendations.append("Cardamom thrives in partially shaded conditions with high humidity. Consider agroforestry approaches.")
+        recommendations.append(
+            "Cardamom thrives in partially shaded conditions with high humidity. Consider agroforestry approaches.")
         if state not in ["Kerala", "Karnataka", "Tamil Nadu"]:
-            recommendations.append(f"Consider that Kerala, Karnataka and Tamil Nadu are historically best suited for cardamom cultivation compared to {state}.")
+            recommendations.append(
+                f"Consider that Kerala, Karnataka and Tamil Nadu are historically best suited for cardamom cultivation compared to {state}.")
 
     return recommendations
+
 
 # This allows the script to be imported as a module
 if __name__ == "__main__":

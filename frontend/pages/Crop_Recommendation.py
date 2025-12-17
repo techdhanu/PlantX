@@ -5,14 +5,57 @@ import os
 import time
 import pandas as pd
 
-def show():
-    st.header("🌾 Crop Recommendation System")
 
-    # Add instructional information and explanation
+def show():
+    # Enhanced header with modern design
     st.markdown("""
-    <div style="background-color: #E8F5E9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2E7D32;">
-        <h3 style="color: #2E7D32; margin-top: 0;">How it works</h3>
-        <p>Our AI model analyzes your soil composition and local climate conditions to recommend the most suitable crops for optimal growth and yield. Enter the values below to get personalized recommendations.</p>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; 
+                   background: linear-gradient(135deg, #558B2F, #8BC34A);
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🌾 Crop Recommendation System
+        </h1>
+        <p style="font-size: 1.2rem; color: #666; margin: 0;">
+            AI-Powered Crop Selection Based on Soil & Climate Analysis
+        </p>
+        <div style="width: 80px; height: 4px; background: linear-gradient(90deg, #558B2F, #8BC34A); 
+                    margin: 1rem auto; border-radius: 2px;"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Enhanced information banner
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%);
+                padding: 2rem; border-radius: 16px; margin-bottom: 2rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+                border: 1px solid rgba(85, 139, 47, 0.1); position: relative;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
+                    background: linear-gradient(180deg, #558B2F, #8BC34A); border-radius: 0 4px 4px 0;"></div>
+        <div style="display: flex; align-items: start; gap: 1.5rem;">
+            <div style="font-size: 3rem;">🤖</div>
+            <div>
+                <h3 style="color: #558B2F; margin: 0 0 1rem 0; font-size: 1.5rem;">AI-Powered Crop Selection</h3>
+                <p style="margin: 0 0 1rem 0; line-height: 1.6; font-size: 1.05rem;">
+                    Our advanced AI model analyzes your <strong>soil composition and local climate conditions</strong> to recommend 
+                    the most suitable crops for optimal growth and yield. Get <strong>personalized recommendations</strong> based on 
+                    scientific data and machine learning algorithms.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+                    <div style="background: rgba(85, 139, 47, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #558B2F;">
+                        🌱 NPK Analysis
+                    </div>
+                    <div style="background: rgba(85, 139, 47, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #558B2F;">
+                        🌡️ Climate Matching
+                    </div>
+                    <div style="background: rgba(85, 139, 47, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #558B2F;">
+                        💧 Water Requirements
+                    </div>
+                    <div style="background: rgba(85, 139, 47, 0.1); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: #558B2F;">
+                        🧪 pH Compatibility
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -20,12 +63,23 @@ def show():
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.markdown("### Soil and Climate Parameters")
-        st.markdown("Enter accurate values for best recommendations:")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h3 style="color: #558B2F; margin-bottom: 0.5rem;">📊 Soil and Climate Parameters</h3>
+            <p style="color: #666; font-size: 0.95rem;">Enter accurate values for best recommendations</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Create a visually appealing form with tooltips and ranges
         with st.form("crop_recommendation_form"):
-            # NPK values
+            # NPK values with enhanced header
+            st.markdown("""
+            <div style="background: linear-gradient(90deg, #558B2F, #8BC34A); 
+                        padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                <h4 style="color: white; margin: 0; font-size: 1rem;">🧪 NPK Soil Nutrients</h4>
+            </div>
+            """, unsafe_allow_html=True)
+
             npk_col1, npk_col2, npk_col3 = st.columns(3)
 
             with npk_col1:
@@ -55,8 +109,14 @@ def show():
                     help="Potassium content in soil (typical range: 5-200 mg/kg)"
                 )
 
-            # Environmental factors
-            st.markdown("#### 🌤️ Environmental Conditions")
+            # Environmental factors with enhanced header
+            st.markdown("""
+            <div style="background: linear-gradient(90deg, #558B2F, #8BC34A); 
+                        padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                <h4 style="color: white; margin: 0; font-size: 1rem;">🌤️ Environmental Conditions</h4>
+            </div>
+            """, unsafe_allow_html=True)
+
             env_col1, env_col2, env_col3 = st.columns(3)
 
             with env_col1:
@@ -98,19 +158,24 @@ def show():
                 help="Annual rainfall in millimeters"
             )
 
-            # Add a visual pH scale
+            # Add an enhanced visual pH scale
             ph_scale = """
-            <div style="margin-top: 5px; margin-bottom: 15px;">
-                <p style="margin-bottom: 5px; font-size: 14px;"><strong>pH Scale Reference:</strong></p>
-                <div style="display: flex; width: 100%; height: 20px; border-radius: 5px; overflow: hidden;">
+            <div style="margin-top: 15px; margin-bottom: 20px; padding: 15px; 
+                        background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%); 
+                        border-radius: 10px; border-left: 4px solid #558B2F;">
+                <p style="margin-bottom: 10px; font-size: 15px; font-weight: 600; color: #558B2F;">
+                    📊 pH Scale Reference
+                </p>
+                <div style="display: flex; width: 100%; height: 24px; border-radius: 8px; overflow: hidden; 
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <div style="flex: 1; background: linear-gradient(to right, #FF4500, #FFA500);" title="Acidic (3-6)"></div>
                     <div style="flex: 0.5; background: #7CFC00;" title="Neutral (6-7.5)"></div>
                     <div style="flex: 1; background: linear-gradient(to right, #00BFFF, #0000FF);" title="Alkaline (7.5-10)"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                    <span>Acidic (3.0)</span>
-                    <span>Neutral (7.0)</span>
-                    <span>Alkaline (10.0)</span>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px; color: #666;">
+                    <span><strong>Acidic</strong> (3.0)</span>
+                    <span><strong>Neutral</strong> (7.0)</span>
+                    <span><strong>Alkaline</strong> (10.0)</span>
                 </div>
             </div>
             """
@@ -124,27 +189,45 @@ def show():
             )
 
     with col2:
-        st.markdown("### 📖 NPK Guide")
         st.markdown("""
-        <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 14px;">
-            <h4 style="color: #2E7D32; margin-top: 0;">Nitrogen (N)</h4>
-            <p style="margin-bottom: 5px;">• Essential for leaf growth</p>
-            <p style="margin-bottom: 5px;">• Influences protein production</p>
-            <p style="margin-bottom: 0;">• Affects green color intensity</p>
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #F1F8E9 100%);
+                    padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid rgba(85, 139, 47, 0.1);">
+            <h4 style="color: #558B2F; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                📖 NPK Guide
+            </h4>
         </div>
-        
-        <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 14px;">
-            <h4 style="color: #2E7D32; margin-top: 0;">Phosphorus (P)</h4>
-            <p style="margin-bottom: 5px;">• Important for root development</p>
-            <p style="margin-bottom: 5px;">• Crucial for flower and seed formation</p>
-            <p style="margin-bottom: 0;">• Helps in energy transfer processes</p>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%); 
+                    padding: 18px; border-radius: 12px; margin-bottom: 15px;
+                    border-left: 4px solid #558B2F;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h4 style="color: #558B2F; margin-top: 0; font-size: 1.1rem;">🅽 Nitrogen (N)</h4>
+            <p style="margin: 8px 0; color: #333;">• Essential for leaf growth</p>
+            <p style="margin: 8px 0; color: #333;">• Influences protein production</p>
+            <p style="margin: 0; color: #333;">• Affects green color intensity</p>
         </div>
-        
-        <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; font-size: 14px;">
-            <h4 style="color: #2E7D32; margin-top: 0;">Potassium (K)</h4>
-            <p style="margin-bottom: 5px;">• Regulates water content</p>
-            <p style="margin-bottom: 5px;">• Improves disease resistance</p>
-            <p style="margin-bottom: 0;">• Enhances fruit quality</p>
+
+        <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); 
+                    padding: 18px; border-radius: 12px; margin-bottom: 15px;
+                    border-left: 4px solid #FF9800;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h4 style="color: #E65100; margin-top: 0; font-size: 1.1rem;">🅿️ Phosphorus (P)</h4>
+            <p style="margin: 8px 0; color: #333;">• Important for root development</p>
+            <p style="margin: 8px 0; color: #333;">• Crucial for flower and seed formation</p>
+            <p style="margin: 0; color: #333;">• Helps in energy transfer processes</p>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    padding: 18px; border-radius: 12px;
+                    border-left: 4px solid #1976D2;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h4 style="color: #1976D2; margin-top: 0; font-size: 1.1rem;">🅺 Potassium (K)</h4>
+            <p style="margin: 8px 0; color: #333;">• Regulates water content</p>
+            <p style="margin: 8px 0; color: #333;">• Improves disease resistance</p>
+            <p style="margin: 0; color: #333;">• Enhances fruit quality</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -155,7 +238,8 @@ def show():
 
         try:
             # Use relative path to load model
-            model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "models", "crop_recommendation_model.pkl")
+            model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                                      "models", "crop_recommendation_model.pkl")
 
             with open(model_path, "rb") as model_file:
                 model = pickle.load(model_file)
@@ -170,12 +254,19 @@ def show():
             # Display result with animation
             st.balloons()
 
-            # Display recommended crop in a visually appealing card
+            # Add separator
+            st.markdown(
+                "<hr style='margin: 30px 0; border: none; height: 1px; background: linear-gradient(90deg, transparent, #558B2F, transparent);'>",
+                unsafe_allow_html=True)
+
+            # Display recommended crop in an enhanced visually appealing card
             st.markdown(f"""
-            <div style="background-color: #2E7D32; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0;">
-                <h2 style="color: white; margin: 0;">Recommended Crop</h2>
-                <h1 style="color: white; margin: 10px 0; font-size: 36px;">{recommended_crop}</h1>
-                <p style="color: white; font-style: italic;">Best suited for your soil and climate conditions</p>
+            <div style="background: linear-gradient(135deg, #558B2F 0%, #8BC34A 100%); 
+                        padding: 30px; border-radius: 12px; text-align: center; margin: 20px 0;
+                        box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <h2 style="color: white; margin: 0; font-size: 1.5rem;">✨ Recommended Crop</h2>
+                <h1 style="color: white; margin: 15px 0; font-size: 48px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">{recommended_crop}</h1>
+                <p style="color: white; font-style: italic; font-size: 1.1rem; margin: 0;">Best suited for your soil and climate conditions</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -223,31 +314,64 @@ def show():
                 # Get info for this crop (or use default)
                 info = crop_info.get(crop_name, default_info)
 
-                # Create an expander with crop details
-                with st.expander("View Crop Details", expanded=True):
+                # Create an enhanced expander with crop details
+                st.markdown("""
+                <h3 style="color: #558B2F; margin: 30px 0 15px 0;">📋 Crop Details</h3>
+                """, unsafe_allow_html=True)
+
+                with st.expander("View Complete Crop Information", expanded=True):
                     col1, col2 = st.columns([1, 1])
 
                     with col1:
                         st.image(info['image_url'], caption=f"{crop_name}", use_column_width=True)
 
                     with col2:
-                        st.markdown(f"**Description:** {info['description']}")
-                        st.markdown(f"**Growing Season:** {info['growing_season']}")
-                        st.markdown(f"**Soil Preference:** {info['soil_preference']}")
-                        st.markdown(f"**Water Needs:** {info['water_needs']}")
-                        st.markdown(f"**Special Notes:** {info['special_notes']}")
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%); 
+                                    padding: 15px; border-radius: 10px; margin-bottom: 10px;
+                                    border-left: 4px solid #558B2F;">
+                            <p style="margin: 5px 0; color: #333;"><strong style="color: #558B2F;">Description:</strong> {info['description']}</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                                    padding: 12px; border-radius: 8px; margin-bottom: 8px;
+                                    border-left: 3px solid #1976D2;">
+                            <p style="margin: 0; color: #333;"><strong style="color: #1976D2;">🌱 Growing Season:</strong> {info['growing_season']}</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); 
+                                    padding: 12px; border-radius: 8px; margin-bottom: 8px;
+                                    border-left: 3px solid #FF9800;">
+                            <p style="margin: 0; color: #333;"><strong style="color: #E65100;">🌍 Soil Preference:</strong> {info['soil_preference']}</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%); 
+                                    padding: 12px; border-radius: 8px; margin-bottom: 8px;
+                                    border-left: 3px solid #0288D1;">
+                            <p style="margin: 0; color: #333;"><strong style="color: #0288D1;">💧 Water Needs:</strong> {info['water_needs']}</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #FCE4EC 0%, #F8BBD0 100%); 
+                                    padding: 12px; border-radius: 8px;
+                                    border-left: 3px solid #C2185B;">
+                            <p style="margin: 0; color: #333;"><strong style="color: #C2185B;">📌 Special Notes:</strong> {info['special_notes']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                # Display next steps and recommendations
-                st.markdown("### 📝 Recommendations")
+                # Display enhanced next steps and recommendations
                 st.markdown("""
-                <div style="background-color: #F1F8E9; padding: 15px; border-radius: 10px; margin: 10px 0;">
-                    <h4 style="color: #2E7D32; margin-top: 0;">Next Steps</h4>
-                    <ul>
-                        <li>Check best planting times for your specific region</li>
-                        <li>Consider crop rotation benefits for soil health</li>
-                        <li>Use our Yield Prediction tool to forecast harvest potential</li>
-                        <li>Set up Climate Risk Alerts to protect your crops</li>
-                    </ul>
+                <h3 style="color: #558B2F; margin: 30px 0 15px 0;">📝 Next Steps & Recommendations</h3>
+                """, unsafe_allow_html=True)
+
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%); 
+                            padding: 20px; border-radius: 12px; margin: 15px 0;
+                            border-left: 4px solid #558B2F;
+                            box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                    <h4 style="color: #558B2F; margin-top: 0;">🎯 Action Plan</h4>
+                    <div style="margin: 15px 0;">
+                        <p style="margin: 10px 0; color: #333;">✓ Check best planting times for your specific region</p>
+                        <p style="margin: 10px 0; color: #333;">✓ Consider crop rotation benefits for soil health</p>
+                        <p style="margin: 10px 0; color: #333;">✓ Use our Yield Prediction tool to forecast harvest potential</p>
+                        <p style="margin: 10px 0; color: #333;">✓ Set up Climate Risk Alerts to protect your crops</p>
+                        <p style="margin: 10px 0; color: #333;">✓ Consult with local agricultural extension services</p>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -255,24 +379,48 @@ def show():
             display_crop_info(recommended_crop)
 
         except FileNotFoundError:
-            st.error("❌ Model file not found. Please ensure 'crop_recommendation_model.pkl' is inside the 'models/' folder.")
+            st.error(
+                "❌ Model file not found. Please ensure 'crop_recommendation_model.pkl' is inside the 'models/' folder.")
         except Exception as e:
             st.error(f"⚠️ Error while predicting: {e}")
 
-    # Always show some guidance information at the bottom
-    with st.expander("ℹ️ About Crop Recommendation AI"):
+    # Always show enhanced guidance information at the bottom
+    st.markdown(
+        "<hr style='margin: 40px 0 20px 0; border: none; height: 1px; background: linear-gradient(90deg, transparent, #558B2F, transparent);'>",
+        unsafe_allow_html=True)
+
+    with st.expander("ℹ️ About Crop Recommendation AI", expanded=False):
         st.markdown("""
-        Our crop recommendation system uses a sophisticated machine learning model trained on thousands of agricultural data points. 
-        The model considers the following factors:
-        
-        - **Soil Nutrients (NPK)**: Different crops require different nutrient profiles.
-        - **pH Level**: Every crop has an optimal soil pH range for nutrient absorption.
-        - **Climate Conditions**: Temperature, humidity, and rainfall patterns affect crop growth.
-        
-        The AI analyzes these parameters collectively to determine which crop would be most successful in your specific conditions.
-        
-        For best results:
-        1. Use accurate soil test results rather than estimates
-        2. Enter climate data based on annual averages for your region
-        3. Consider seasonal variations in your planning
-        """)
+        <div style="background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%); 
+                    padding: 20px; border-radius: 12px;
+                    border-left: 4px solid #558B2F;">
+            <p style="color: #333; line-height: 1.8;">
+                Our crop recommendation system uses a <strong>sophisticated machine learning model</strong> trained on thousands of agricultural data points. 
+                The model considers the following factors:
+            </p>
+
+            <div style="margin: 20px 0;">
+                <div style="background: rgba(85, 139, 47, 0.1); padding: 12px; border-radius: 8px; margin: 10px 0;">
+                    <p style="margin: 0; color: #333;"><strong style="color: #558B2F;">🧪 Soil Nutrients (NPK):</strong> Different crops require different nutrient profiles for optimal growth.</p>
+                </div>
+                <div style="background: rgba(85, 139, 47, 0.1); padding: 12px; border-radius: 8px; margin: 10px 0;">
+                    <p style="margin: 0; color: #333;"><strong style="color: #558B2F;">📊 pH Level:</strong> Every crop has an optimal soil pH range for maximum nutrient absorption.</p>
+                </div>
+                <div style="background: rgba(85, 139, 47, 0.1); padding: 12px; border-radius: 8px; margin: 10px 0;">
+                    <p style="margin: 0; color: #333;"><strong style="color: #558B2F;">🌤️ Climate Conditions:</strong> Temperature, humidity, and rainfall patterns significantly affect crop growth and yield.</p>
+                </div>
+            </div>
+
+            <p style="color: #333; margin-top: 15px;">
+                The AI analyzes these parameters <strong>collectively</strong> to determine which crop would be most successful in your specific conditions.
+            </p>
+
+            <div style="background: rgba(255, 152, 0, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #FF9800;">
+                <h4 style="color: #E65100; margin-top: 0;">💡 For Best Results:</h4>
+                <p style="margin: 8px 0; color: #333;">1. Use accurate soil test results rather than estimates</p>
+                <p style="margin: 8px 0; color: #333;">2. Enter climate data based on annual averages for your region</p>
+                <p style="margin: 8px 0; color: #333;">3. Consider seasonal variations in your planning</p>
+                <p style="margin: 8px 0 0 0; color: #333;">4. Consult with local agricultural extension services for region-specific advice</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
