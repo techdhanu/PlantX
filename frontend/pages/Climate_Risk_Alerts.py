@@ -1,18 +1,10 @@
 import streamlit as st
-import pickle
-import numpy as np
 import time
 import os
 from datetime import datetime
 
-def show():
     # Enhanced header with modern design
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; 
-                   background: linear-gradient(135deg, #1976D2, #42A5F5);
-                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            🌦️ Climate Risk Alerts
         </h1>
         <p style="font-size: 1.2rem; color: #666; margin: 0;">
             AI-Powered Weather Risk Assessment & Early Warning System
@@ -62,10 +54,10 @@ def show():
     tab1, tab2, tab3 = st.tabs(["🔍 Risk Prediction", "🗺️ Risk Map", "📊 Historical Analysis"])
 
     with tab1:
-        # Add 7-Day Forecast at the top of the Risk Prediction tab
+        # Add 14-Day Forecast at the top of the Risk Prediction tab
         st.markdown("""
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h3 style="color: #1976D2; margin-bottom: 0.5rem;">🔮 7-Day Weather Forecast</h3>
+            <h3 style="color: #1976D2; margin-bottom: 0.5rem;">🔮 14-Day Weather Forecast</h3>
             <p style="color: #666; font-size: 0.95rem;">Real-time weather predictions and risk indicators</p>
         </div>
         """, unsafe_allow_html=True)
@@ -76,9 +68,6 @@ def show():
             forecast_data = st.session_state.weather_data['forecast']
 
         if forecast_data:
-            # Create a horizontal layout for forecast cards
-            forecast_cols = st.columns(7)
-
             # Weather icon mapping
             weather_icons = {
                 'clear-day': '☀️',
@@ -97,8 +86,19 @@ def show():
                 'thunder-showers-night': '⛈️',
             }
 
-            # Display each day's forecast in a column
-            for i, (day, col) in enumerate(zip(forecast_data, forecast_cols)):
+            # Display first week (Days 1-7)
+            st.markdown("""
+            <p style="color: #1976D2; font-weight: 600; font-size: 0.9rem; margin: 1rem 0 0.5rem 0; text-align: center;">
+                Week 1 (Days 1-7)
+            </p>
+            """, unsafe_allow_html=True)
+
+            forecast_cols_week1 = st.columns(7)
+
+            for i in range(min(7, len(forecast_data))):
+                day = forecast_data[i]
+                col = forecast_cols_week1[i]
+
                 date_obj = datetime.strptime(day['date'], '%Y-%m-%d')
                 day_name = date_obj.strftime('%a') if i > 0 else 'Today'
                 icon = weather_icons.get(day['icon'], '🌤️')
@@ -129,52 +129,54 @@ def show():
                        border-radius: 12px; margin-top: 8px; font-weight: 600;">{risk_level} Risk</p>
                 </div>
                 """, unsafe_allow_html=True)
-        else:
-            st.info("Weather forecast data is not available. Please check your location settings.")
 
+            # Display second week (Days 8-14) if available
+            if len(forecast_data) > 7:
+                st.markdown("""
+                <p style="color: #1976D2; font-weight: 600; font-size: 0.9rem; margin: 1.5rem 0 0.5rem 0; text-align: center;">
+                    Week 2 (Days 8-14)
+                </p>
+                """, unsafe_allow_html=True)
+
+                forecast_cols_week2 = st.columns(7)
+
+                for i in range(7, min(14, len(forecast_data))):
+                    day = forecast_data[i]
+                    col = forecast_cols_week2[i - 7]
+
+                    date_obj = datetime.strptime(day['date'], '%Y-%m-%d')
+                    day_name = date_obj.strftime('%a')
+                    icon = weather_icons.get(day['icon'], '🌤️')
+
+                    # Determine if there are any risk conditions
+                    risk_level = "Low"
+                    risk_color = "#4CAF50"
+
+                    if day['rainfall'] > 15:
+                        risk_level = "High"
+                        risk_color = "#F44336"
+                    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+                                padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 5px; 
+                                border-top: 4px solid {risk_color};
+                        <p style="font-size: 28px; margin: 8px 0;">{icon}</p>
+                        <p style="font-size: 20px; margin: 8px 0; font-weight: 600; color: #1976D2;">{day['temperature']}°C</p>
+                        <p style="font-size: 11px; margin: 3px 0; color: #666;">🔽 {day['tempMin']}° 🔼 {day['tempMax']}°</p>
+                        <p style="font-size: 11px; margin: 3px 0; color: #666;">💧 {day['humidity']}%</p>
+                        <p style="font-size: 11px; margin: 3px 0; color: #666;">🌧️ {day['rainfall']} mm</p>
+                        value=28.644800,
+                           border-radius: 12px; margin-top: 8px; font-weight: 600;">{risk_level} Risk</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
         # Add a separator between forecast and risk prediction form
         st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
 
         # Create two columns for form and info
         col1, col2 = st.columns([2, 1])
-
+                        value=77.216721,
         with col1:
             st.markdown("""
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📍 Location & Environmental Data</h3>
-                <p style="color: #666; font-size: 0.95rem;">Enter accurate location and climate parameters for risk assessment</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # Form for input parameters
-            with st.form("risk_prediction_form"):
-                # Location parameters
-                st.markdown("""
-                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
-                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
-                    <h4 style="color: white; margin: 0; font-size: 1rem;">📍 Location Details</h4>
-                </div>
-                """, unsafe_allow_html=True)
-                loc_col1, loc_col2 = st.columns(2)
-
-                with loc_col1:
-                    latitude = st.number_input(
-                        "Latitude",
-                        format="%.6f",
-                        min_value=-90.0,
-                        max_value=90.0,
-                        value=28.644800,
-                        help="Enter the latitude of your farm location"
-                    )
-
-                with loc_col2:
-                    longitude = st.number_input(
-                        "Longitude",
-                        format="%.6f",
-                        min_value=-180.0,
-                        max_value=180.0,
-                        value=77.216721,
-                        help="Enter the longitude of your farm location"
                     )
 
                 # Weather parameters
@@ -365,97 +367,175 @@ def show():
                 time.sleep(1.5)  # Simulate processing time
 
             try:
-                # Load the model (with improved error handling)
-                model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "models", "climate_risk_model.pkl")
+                # ===== RULE-BASED FLOOD RISK PREDICTION =====
+                # No ML model - using comprehensive parameter-based scoring system
 
-                # Initialize to use mock prediction by default (as fallback)
-                mock_prediction = True
+                # Define max_score and initialize score variables
+                max_score = 16  # Total possible score (10 parameters × 2 points max each)
+                risk_score = 0
 
-                try:
-                    if not os.path.exists(model_path):
-                        st.warning(f"Model file not found at: {model_path}")
-                        st.info("Using fallback prediction method based on input parameters.")
-                    else:
-                        try:
-                            with open(model_path, "rb") as f:
-                                model = pickle.load(f)
-                            # Successfully loaded the model
-                            mock_prediction = False
-                            st.success("Climate risk model loaded successfully.")
-                        except Exception as e:
-                            st.error(f"Error loading model: {str(e)}")
-                            st.info("Using fallback prediction method based on input parameters.")
-                except Exception as e:
-                    st.error(f"Unexpected error: {str(e)}")
+                # Initialize all individual score variables
+                rainfall_score = 0
+                discharge_score = 0
+                water_score = 0
+                elevation_score = 0
+                soil_score = 0
+                land_score = 0
+                humidity_score = 0
+                temp_score = 0
+                history_score = 0
+                infra_score = 0
 
-                # Convert categorical inputs to numbers
-                land_cover_map = {"Forest":0, "Urban":1, "Agriculture":2, "Water":3}
-                soil_type_map = {"Sandy":0, "Clay":1, "Silt":2, "Peat":3, "Chalk":4, "Loam":5}
+                # ===== COMPREHENSIVE RISK SCORING SYSTEM =====
+                # Score each parameter: 0 = Low, 1 = Moderate, 2 = High
 
-                input_features = np.array([[
-                    latitude,
-                    longitude,
-                    rainfall,
-                    temperature,
-                    humidity,
-                    river_discharge,
-                    water_level,
-                    elevation,
-                    land_cover_map[land_cover],
-                    soil_type_map[soil_type],
-                    population_density,
-                    infrastructure,
-                    historical_floods
-                ]])
-
-                # Make prediction
-                if not mock_prediction:
-                    flood_risk_prob = model.predict_proba(input_features)[0][1] if hasattr(model, 'predict_proba') else 0.65
-                    prediction = model.predict(input_features)[0]
+                # 🌧️ Rainfall Risk (mm/day)
+                if rainfall < 30:
+                    rainfall_score = 0  # Low
+                elif rainfall <= 70:
+                    rainfall_score = 1  # Moderate
                 else:
-                    # Generate mock prediction based on input values
-                    # Higher rainfall, river discharge, previous floods, and lower elevation increase risk
-                    base_risk = 0.2
-                    if rainfall > 100: base_risk += 0.2
-                    if river_discharge > 200: base_risk += 0.15
-                    if historical_floods > 3: base_risk += 0.1
-                    if elevation < 50: base_risk += 0.15
-                    if water_level > 4: base_risk += 0.2
-                    if land_cover == "Urban": base_risk += 0.05
-                    if soil_type == "Clay": base_risk += 0.05
+                    rainfall_score = 2  # High
+                risk_score += rainfall_score
 
-                    flood_risk_prob = min(base_risk, 0.95)
-                    prediction = 1 if flood_risk_prob > 0.5 else 0
+                # 🌊 River Discharge Risk (m³/s)
+                if river_discharge < 80:
+                    discharge_score = 0  # Low
+                elif river_discharge <= 150:
+                    discharge_score = 1  # Moderate
+                else:
+                    discharge_score = 2  # High
+                risk_score += discharge_score
 
-                # Display results
-                if prediction == 1:
-                    risk_color = "#F44336"
-                    risk_text = "High Risk"
+                # 💧 Water Level Risk (m)
+                if water_level < 1.5:
+                    water_score = 0  # Low
+                elif water_level <= 2.2:
+                    water_score = 1  # Moderate
+                else:
+                    water_score = 2  # High
+                risk_score += water_score
+
+                # 🏞️ Elevation Risk (m)
+                if elevation > 500:
+                    elevation_score = 0  # Low
+                elif elevation >= 200:
+                    elevation_score = 1  # Moderate
+                else:
+                    elevation_score = 2  # High
+                risk_score += elevation_score
+
+                # 🧪 Soil Type Risk
+                if soil_type == "Sandy":
+                    soil_score = 0  # Low - good drainage
+                elif soil_type in ["Loam", "Silt", "Chalk"]:
+                    soil_score = 1  # Moderate
+                else:  # Clay, Peat
+                    soil_score = 2  # High - poor drainage
+                risk_score += soil_score
+
+                # 🌾 Land Cover Risk
+                if land_cover == "Forest":
+                    land_score = 0  # Low - absorbs water
+                elif land_cover == "Agriculture":
+                    land_score = 1  # Moderate-High
+                else:  # Urban, Water
+                    land_score = 2  # High
+                risk_score += land_score
+
+                # 💧 Humidity Risk (%)
+                if humidity < 60:
+                    humidity_score = 0  # Low
+                elif humidity <= 75:
+                    humidity_score = 1  # Moderate
+                else:
+                    humidity_score = 2  # High
+                risk_score += humidity_score
+
+                # 🌡️ Temperature Risk (°C) - extreme temps increase risk
+                if 15 <= temperature <= 30:
+                    temp_score = 0  # Low - normal range
+                elif (10 <= temperature < 15) or (30 < temperature <= 35):
+                    temp_score = 1  # Moderate
+                else:
+                    temp_score = 2  # High - extreme temps
+                risk_score += temp_score
+
+                # 📜 Historical Floods Risk (0-10 scale)
+                if historical_floods <= 3:
+                    history_score = 0  # Low
+                elif historical_floods <= 6:
+                    history_score = 1  # Moderate
+                else:
+                    history_score = 2  # High
+                risk_score += history_score
+
+                # 🏗️ Infrastructure Risk (lower infrastructure = higher risk)
+                if infrastructure >= 7:
+                    infra_score = 0  # Low - good infrastructure
+                elif infrastructure >= 4:
+                    infra_score = 1  # Moderate
+                else:
+                    infra_score = 2  # High - poor infrastructure
+                risk_score += infra_score
+
+                # Calculate risk probability (0-100%)
+                flood_risk_prob = (risk_score / max_score)
+                total_score = risk_score
+
+                # Determine risk level and color
+                if total_score <= 4:
+                    risk_level = "Low"
+                    risk_color = "#4CAF50"  # Green
+                    risk_text = "Low Risk"
+                    risk_emoji = "🟢"
                     recommendations = [
-                        "Consider flood-resistant crop varieties",
+                        "Maintain normal agricultural practices",
+                        "Regular inspection of farm infrastructure",
+                        "Stay updated with seasonal forecasts",
+                        "Continue routine drainage maintenance"
+                    ]
+                elif total_score <= 8:
+                    risk_level = "Moderate"
+                    risk_color = "#FF9800"  # Orange
+                    risk_text = "Moderate Risk"
+                    risk_emoji = "🟡"
+                    recommendations = [
+                        "Monitor weather forecasts closely",
+                        "Inspect drainage systems regularly",
+                        "Have a basic emergency plan ready",
+                        "Consider timing of planting to avoid peak rainfall season",
+                        "Prepare equipment for water management"
+                    ]
+                elif total_score <= 12:
+                    risk_level = "High"
+                    risk_color = "#F44336"  # Red
+                    risk_text = "High Risk"
+                    risk_emoji = "🟠"
+                    recommendations = [
+                        "⚠️ Alert: Flood risk detected in your area",
+                        "Avoid irrigation - heavy rainfall expected",
+                        "Move equipment to higher ground immediately",
                         "Implement drainage systems on your farm",
                         "Set up early warning systems",
-                        "Prepare an emergency plan for livestock and equipment",
+                        "Prepare emergency plan for livestock and equipment",
                         "Consider flood insurance for your crops"
                     ]
-                else:
-                    if flood_risk_prob > 0.3:
-                        risk_color = "#FF9800"
-                        risk_text = "Moderate Risk"
-                        recommendations = [
-                            "Monitor weather forecasts closely",
-                            "Inspect drainage systems regularly",
-                            "Have a basic emergency plan ready",
-                            "Consider timing of planting to avoid peak rainfall season"
-                        ]
-                    else:
-                        risk_color = "#4CAF50"
-                        risk_text = "Low Risk"
-                        recommendations = [
-                            "Maintain normal agricultural practices",
-                            "Regular inspection of farm infrastructure",
-                            "Stay updated with seasonal forecasts"
-                        ]
+                else:  # 13-16
+                    risk_level = "Severe"
+                    risk_color = "#D32F2F"  # Dark Red
+                    risk_text = "Severe Risk"
+                    risk_emoji = "🔴"
+                    recommendations = [
+                        "🚨 EMERGENCY: Severe flood risk - immediate action required!",
+                        "Evacuate livestock to safe areas NOW",
+                        "Secure all farm equipment and machinery",
+                        "Monitor water channels continuously",
+                        "Coordinate with local emergency services",
+                        "Prepare for potential crop loss",
+                        "Have emergency contacts ready",
+                        "Stock emergency supplies (food, water, medical)"
+                    ]
 
                 # Display risk score with gauge visualization
                 risk_percentage = int(flood_risk_prob * 100)
@@ -465,8 +545,9 @@ def show():
                             padding: 2rem; border-radius: 16px; text-align: center; margin: 20px 0;
                             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);">
                     <h2 style="color: white; margin: 0 0 0.5rem 0; font-size: 1.5rem;">🌊 Flood Risk Assessment</h2>
-                    <h1 style="color: white; margin: 0.5rem 0; font-size: 3rem; font-weight: 700;">{risk_text}</h1>
-                    <p style="color: white; font-weight: bold; font-size: 1.2rem; margin: 0.5rem 0;">Risk Probability: {risk_percentage}%</p>
+                    <h1 style="color: white; margin: 0.5rem 0; font-size: 3rem; font-weight: 700;">{risk_emoji} {risk_text}</h1>
+                    <p style="color: white; font-weight: bold; font-size: 1.2rem; margin: 0.5rem 0;">Risk Score: {total_score}/{max_score} ({risk_percentage}%)</p>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 1rem; margin: 0.5rem 0;">Risk Level: {risk_level}</p>
                 </div>
                 """, unsafe_allow_html=True)
 

@@ -223,6 +223,24 @@ if 'detected_location' not in st.session_state:
     st.session_state.detected_location = None
 if 'weather_location' not in st.session_state:
     st.session_state.weather_location = "New Delhi, India"
+if 'selected_latitude' not in st.session_state:
+    st.session_state.selected_latitude = 28.6139
+if 'selected_longitude' not in st.session_state:
+    st.session_state.selected_longitude = 77.2090
+
+# Location to coordinates mapping for major Indian cities
+LOCATION_COORDINATES = {
+    "New Delhi, India": (28.6139, 77.2090),
+    "Mumbai, India": (19.0760, 72.8777),
+    "Bengaluru, India": (12.9716, 77.5946),
+    "Chennai, India": (13.0827, 80.2707),
+    "Kolkata, India": (22.5726, 88.3639),
+    "Hyderabad, India": (17.3850, 78.4867),
+    "Pune, India": (18.5204, 73.8567),
+    "Ahmedabad, India": (23.0225, 72.5714),
+    "Jaipur, India": (26.9124, 75.7873),
+    "Lucknow, India": (26.8467, 80.9462)
+}
 
 # Sidebar Navigation
 with st.sidebar:
@@ -256,23 +274,16 @@ with st.sidebar:
     st.markdown("<hr style='margin: 2rem 0; border-color: rgba(255,255,255,0.2);'>", unsafe_allow_html=True)
 
     # Location selector and weather display
-    st.markdown("""
-    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 1rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 1px;">
-        Location & Weather
-    </p>
-    """, unsafe_allow_html=True)
-
-    # Get detected location if not already done
-    if st.session_state.detected_location is None:
-        try:
-            detected_loc = get_location_from_ip()
-            if detected_loc and 'location_string' in detected_loc:
-                st.session_state.detected_location = detected_loc['location_string']
-                st.session_state.location_data = detected_loc
+                st.session_state.selected_latitude = detected_loc.get('latitude', 28.6139)
+                st.session_state.selected_longitude = detected_loc.get('longitude', 77.2090)
             else:
                 st.session_state.detected_location = "New Delhi, India"
+                st.session_state.selected_latitude = 28.6139
+                st.session_state.selected_longitude = 77.2090
         except:
             st.session_state.detected_location = "New Delhi, India"
+            st.session_state.selected_latitude = 28.6139
+            st.session_state.selected_longitude = 77.2090
 
     # Location options (common farming locations in India)
     location_options = [
@@ -284,13 +295,6 @@ with st.sidebar:
         "Hyderabad, India",
         "Pune, India",
         "Ahmedabad, India",
-        "Jaipur, India",
-        "Lucknow, India"
-    ]
-
-    # Add detected location if not already in the list
-    if st.session_state.detected_location and st.session_state.detected_location not in location_options:
-        location_options.insert(0, st.session_state.detected_location)
 
     # Get current selected location
     current_location = st.session_state.user_location_preference or st.session_state.detected_location or "New Delhi, India"
@@ -303,10 +307,15 @@ with st.sidebar:
         help="Select your location to get accurate weather data"
     )
 
-    # Update location and fetch weather if changed
-    if selected_location != st.session_state.user_location_preference:
-        try:
-            st.session_state.user_location_preference = selected_location
+                lat, lon = LOCATION_COORDINATES[selected_location]
+                st.session_state.selected_latitude = lat
+                st.session_state.selected_longitude = lon
+            else:
+                # Try to get coordinates from location_data if it's the detected location
+                if st.session_state.location_data and selected_location == st.session_state.detected_location:
+                    st.session_state.selected_latitude = st.session_state.location_data.get('latitude', 28.6139)
+                    st.session_state.selected_longitude = st.session_state.location_data.get('longitude', 77.2090)
+
             # Fetch updated weather data
             updated_weather = get_visualcrossing_weather(selected_location)
             if updated_weather:

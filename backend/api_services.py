@@ -73,9 +73,9 @@ def get_visualcrossing_weather(location):
                 "humidity": today.get('humidity', 0)      # humidity percentage
             }
 
-            # Get forecast data for next 7 days
+            # Get forecast data for next 14 days
             forecast = []
-            for i in range(0, 7):  # 0 is today, 1-7 are the next 7 days
+            for i in range(0, 14):  # 0 is today, 1-13 are the next 14 days
                 if i < len(data['days']):
                     day = data['days'][i]
                     forecast_day = {
@@ -160,7 +160,117 @@ def geocode_location(place_name):
     except Exception:
         return None
 
+
+def validate_agricultural_land(latitude, longitude):
+    """
+    Validate if given latitude/longitude coordinates point to agricultural land.
+    Uses OpenStreetMap Overpass API (free, no authentication required).
+
+    Args:
+        latitude (float): Latitude coordinate
+        longitude (float): Longitude coordinate
+
+    Returns:
+        dict: {
+            'is_agricultural': bool,
+            'message': str,
+            'land_types': list,
+            'confidence': str,
+            'api_status': str
+        }
+    """
+    try:
+        # OpenStreetMap Overpass API endpoint
+        overpass_url = "http://overpass-api.de/api/interpreter"
+
+        # Search radius in meters (1000m = 1km)
+        radius = 1000
+
+        # Overpass query to check for agricultural land use tags
+        # Searches for: farmland, agriculture, meadow, orchard, vineyard, farmyard, allotments
+        overpass_query = f"""
+        [out:json][timeout:10];
+        (
+          way["landuse"~"farmland|agriculture|meadow|orchard|vineyard|farmyard|allotments"](around:{radius},{latitude},{longitude});
+          relation["landuse"~"farmland|agriculture|meadow|orchard|vineyard|farmyard|allotments"](around:{radius},{latitude},{longitude});
+          way["crop"](around:{radius},{latitude},{longitude});
+          way["produce"](around:{radius},{latitude},{longitude});
+        );
+        out tags;
+        """
+
+        # Make API request with timeout
+        response = requests.post(
+            overpass_url,
+            data={'data': overpass_query},
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            elements = data.get('elements', [])
+
+            # Collect all land use types found
+            land_types = []
+            for element in elements:
+                tags = element.get('tags', {})
+                if 'landuse' in tags:
+                    land_types.append(tags['landuse'])
+                if 'crop' in tags:
+                    land_types.append(f"crop: {tags['crop']}")
+                if 'produce' in tags:
+                    land_types.append(f"produce: {tags['produce']}")
+
+            # Remove duplicates
+            land_types = list(set(land_types))
+
+            # Determine if it's agricultural land
+            if len(elements) > 0 and len(land_types) > 0:
+                return {
+                    'is_agricultural': True,
+                    'message': f'✅ Location verified as agricultural land ({", ".join(land_types[:3])})',
+                    'land_types': land_types,
+                    'confidence': 'high' if len(elements) >= 3 else 'medium',
+                    'api_status': 'success'
+                }
+            else:
+                return {
+                    'is_agricultural': False,
+                    'message': '⚠️ Warning: This location does not appear to be classified as agricultural land in OpenStreetMap data. This may be due to incomplete mapping or the area being newly converted to farmland.',
+                    'land_types': [],
+                    'confidence': 'low',
+                    'api_status': 'success'
+                }
+        else:
+            # API error - return neutral response
+            return {
+                'is_agricultural': None,
+                'message': 'ℹ️ Unable to verify land type (API unavailable). You may proceed with your data.',
+                'land_types': [],
+                'confidence': 'unknown',
+                'api_status': f'error_{response.status_code}'
+            }
+
+    except requests.exceptions.Timeout:
+        # Timeout - allow user to proceed
+        return {
+            'is_agricultural': None,
+            'message': 'ℹ️ Land validation timed out. You may proceed with your data.',
+            'land_types': [],
+            'confidence': 'unknown',
+            'api_status': 'timeout'
+        }
+    except Exception as e:
+        # Any other error - allow user to proceed
+        return {
+            'is_agricultural': None,
+            'message': f'ℹ️ Unable to verify land type (network error). You may proceed with your data.',
+            'land_types': [],
+            'confidence': 'unknown',
+            'api_status': f'error_{str(e)[:50]}'
+        }
+
 # For troubleshooting import issues
 if __name__ == "__main__":
     print("API services module loaded successfully")
-    print(f"Available functions: get_location_from_ip, get_visualcrossing_weather, get_soil_data, geocode_location")
+    print(f"Available functions: get_location_from_ip, get_visualcrossing_weather, get_soil_data, geocode_location, validate_agricultural_land")
