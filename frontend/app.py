@@ -274,6 +274,20 @@ with st.sidebar:
     st.markdown("<hr style='margin: 2rem 0; border-color: rgba(255,255,255,0.2);'>", unsafe_allow_html=True)
 
     # Location selector and weather display
+    st.markdown("""
+    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 1rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 1px;">
+        Location & Weather
+    </p>
+    """, unsafe_allow_html=True)
+
+    # Get detected location if not already done
+    if st.session_state.detected_location is None:
+        try:
+            detected_loc = get_location_from_ip()
+            if detected_loc and 'location_string' in detected_loc:
+                st.session_state.detected_location = detected_loc['location_string']
+                st.session_state.location_data = detected_loc
+                # Set initial coordinates from detected location
                 st.session_state.selected_latitude = detected_loc.get('latitude', 28.6139)
                 st.session_state.selected_longitude = detected_loc.get('longitude', 77.2090)
             else:
@@ -295,6 +309,13 @@ with st.sidebar:
         "Hyderabad, India",
         "Pune, India",
         "Ahmedabad, India",
+        "Jaipur, India",
+        "Lucknow, India"
+    ]
+
+    # Add detected location if not already in the list
+    if st.session_state.detected_location and st.session_state.detected_location not in location_options:
+        location_options.insert(0, st.session_state.detected_location)
 
     # Get current selected location
     current_location = st.session_state.user_location_preference or st.session_state.detected_location or "New Delhi, India"
@@ -307,6 +328,13 @@ with st.sidebar:
         help="Select your location to get accurate weather data"
     )
 
+    # Update location and fetch weather if changed
+    if selected_location != st.session_state.user_location_preference:
+        try:
+            st.session_state.user_location_preference = selected_location
+
+            # Update latitude and longitude based on selected location
+            if selected_location in LOCATION_COORDINATES:
                 lat, lon = LOCATION_COORDINATES[selected_location]
                 st.session_state.selected_latitude = lat
                 st.session_state.selected_longitude = lon
