@@ -3,8 +3,14 @@ import time
 import os
 from datetime import datetime
 
+def show():
     # Enhanced header with modern design
     st.markdown("""
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; 
+                   background: linear-gradient(135deg, #1976D2, #42A5F5);
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🌦️ Climate Risk Alerts
         </h1>
         <p style="font-size: 1.2rem; color: #666; margin: 0;">
             AI-Powered Weather Risk Assessment & Early Warning System
@@ -155,28 +161,75 @@ from datetime import datetime
                     if day['rainfall'] > 15:
                         risk_level = "High"
                         risk_color = "#F44336"
-                    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+                    elif day['rainfall'] > 5:
+                        risk_level = "Moderate"
+                        risk_color = "#FF9800"
+
+                    col.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
                                 padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 5px; 
                                 border-top: 4px solid {risk_color};
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+                        <p style="font-weight: bold; margin-bottom: 8px; color: #1976D2; font-size: 0.9rem;">{day_name}</p>
                         <p style="font-size: 28px; margin: 8px 0;">{icon}</p>
                         <p style="font-size: 20px; margin: 8px 0; font-weight: 600; color: #1976D2;">{day['temperature']}°C</p>
                         <p style="font-size: 11px; margin: 3px 0; color: #666;">🔽 {day['tempMin']}° 🔼 {day['tempMax']}°</p>
                         <p style="font-size: 11px; margin: 3px 0; color: #666;">💧 {day['humidity']}%</p>
                         <p style="font-size: 11px; margin: 3px 0; color: #666;">🌧️ {day['rainfall']} mm</p>
-                        value=28.644800,
+                        <p style="font-size: 10px; background-color: {risk_color}; color: white; padding: 4px 8px; 
                            border-radius: 12px; margin-top: 8px; font-weight: 600;">{risk_level} Risk</p>
                     </div>
                     """, unsafe_allow_html=True)
         else:
+            st.info("Weather forecast data is not available. Please check your location settings.")
+
         # Add a separator between forecast and risk prediction form
         st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
 
         # Create two columns for form and info
         col1, col2 = st.columns([2, 1])
-                        value=77.216721,
+
         with col1:
             st.markdown("""
             <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="color: #1976D2; margin-bottom: 0.5rem;">📍 Location & Environmental Data</h3>
+                <p style="color: #666; font-size: 0.95rem;">Enter accurate location and climate parameters for risk assessment</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Form for input parameters
+            with st.form("risk_prediction_form"):
+                # Location parameters
+                st.markdown("""
+                <div style="background: linear-gradient(90deg, #1976D2, #42A5F5); 
+                            padding: 8px 15px; border-radius: 8px; margin: 15px 0 10px 0;">
+                    <h4 style="color: white; margin: 0; font-size: 1rem;">📍 Location Details</h4>
+                </div>
+                """, unsafe_allow_html=True)
+                loc_col1, loc_col2 = st.columns(2)
+
+                # Get coordinates from session state (updated when location changes in sidebar)
+                default_lat = st.session_state.get('selected_latitude', 28.644800)
+                default_lon = st.session_state.get('selected_longitude', 77.216721)
+
+                with loc_col1:
+                    latitude = st.number_input(
+                        "Latitude",
+                        format="%.6f",
+                        min_value=-90.0,
+                        max_value=90.0,
+                        value=default_lat,
+                        help="Enter the latitude of your farm location"
+                    )
+
+                with loc_col2:
+                    longitude = st.number_input(
+                        "Longitude",
+                        format="%.6f",
+                        min_value=-180.0,
+                        max_value=180.0,
+                        value=default_lon,
+                        help="Enter the longitude of your farm location"
                     )
 
                 # Weather parameters
